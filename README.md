@@ -7,7 +7,7 @@
 Control and telemetry firmware developed by the Electronics and Embedded Systems (ESE) team for the Bench Drone.
 
 ### 📌 About the Project
-The goal of this project is to provide a deterministic, real-time control loop to stabilize the Quanser Aero 2 (1-DOF and 2-DOF) using an ESP32-S3.
+The goal of this project is to provide a deterministic, real-time control loop to stabilize the bench drone (1-DOF and 2-DOF) using an ESP32-S3.
 
 ### 🧠 Firmware Architecture (Dual-Core RTOS)
 The system uses the native FreeRTOS from ESP-IDF to isolate critical processes:
@@ -15,7 +15,7 @@ The system uses the native FreeRTOS from ESP-IDF to isolate critical processes:
 * **Core 0 (Telemetry):** Responsible for real-time data transmission (CSV via Serial) for external processing in MATLAB/Simulink by the MCM (Modeling) team.
 
 ### 🖼️ System Architecture Diagram
-![Firmware Architecture](assets/fluxograma_in.png)
+![Firmware Architecture](assets/arquitetura_in.png)
 
 ### ⚙️ Hardware
 * **Microcontroller:** ESP32-S3 DevKitC-1 (16MB Flash, 8MB PSRAM)
@@ -35,7 +35,7 @@ The system uses the native FreeRTOS from ESP-IDF to isolate critical processes:
 Firmware de controle e telemetria desenvolvido pela equipe de Eletrônica e Sistemas Embarcados (ESE) para o Drone de Bancada.
 
 ### 📌 Sobre o Projeto
-O objetivo deste projeto é fornecer uma malha de controle determinística e em tempo real para estabilizar o Quanser Aero 2 (1-DOF e 2-DOF) utilizando um ESP32-S3.
+O objetivo deste projeto é fornecer uma malha de controle determinística e em tempo real para estabilizar o drone de bancada (1-DOF e 2-DOF) utilizando um ESP32-S3.
 
 ### 🧠 Arquitetura de Firmware (Dual-Core RTOS)
 O sistema utiliza o FreeRTOS nativo do ESP-IDF para isolar processos críticos:
@@ -43,7 +43,7 @@ O sistema utiliza o FreeRTOS nativo do ESP-IDF para isolar processos críticos:
 * **Core 0 (Telemetria):** Responsável pelo envio em tempo real (CSV via Serial) das variáveis de estado para processamento externo no MATLAB/Simulink pela equipe de Modelagem (MCM).
 
 ### 🖼️ Diagrama da Arquitetura
-![Arquitetura de Firmware](assets/fluxograma_pt.png)
+![Arquitetura de Firmware](assets/arquitetura_pt.png)
 
 ### ⚙️ Hardware Utilizado
 * **Microcontrolador:** ESP32-S3 DevKitC-1 (16MB Flash, 8MB PSRAM)
