@@ -2,102 +2,63 @@
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 #include <freertos/queue.h>
+
 #include "Constants.h"
 #include "Motor.h"
 #include "Sensor.h"
 
-// Estrutura para passar parâmetros para as tasks
 struct TaskParams {
     QueueHandle_t queue;
     Sensor* sensor;
     Motor* motor;
 };
 
-// ==========================================
-// TASK CORE 0: LEITURA DE SENSORES (TELEMETRIA)
-// ==========================================
-void loopLeituraSensores(void *pvParameters) {
-  TaskParams* params = (TaskParams*) pvParameters;
-  Sensor* sensor = params->sensor;
-  QueueHandle_t queue = params->queue;
-
-  DadosSensores dadosAtuais;
-  for (;;) {
-    // 1. O Objeto Sensor lê o hardware
-    dadosAtuais = sensor->lerDados();
-    
-    // 2. Envia os dados pela Fila com segurança
-    xQueueSend(queue, &dadosAtuais, portMAX_DELAY);
-    
-    // Log para Debug
-    Serial.printf("Core 0 (Sensores): Pitch lido: %.2f\n", dadosAtuais.anguloPitch);
-    vTaskDelay(pdMS_TO_TICKS(1000 / FREQ_LEITURA_SENSORES_HZ)); 
-  }
-}
-
-// ==========================================
-// TASK CORE 1: MALHA DE CONTROLE
-// ==========================================
-void loopControle(void *pvParameters) {
-  TaskParams* params = (TaskParams*) pvParameters;
-  Motor* motor = params->motor;
-  QueueHandle_t queue = params->queue;
-
-  TickType_t xLastWakeTime = xTaskGetTickCount();
-  const TickType_t xFrequency = pdMS_TO_TICKS(1000 / FREQ_CONTROLE_HZ); 
-  
-  DadosSensores dadosRecebidos;
-  for (;;) {
-    // 1. Espera chegar dados da Fila
-    if (xQueueReceive(queue, &dadosRecebidos, 0) == pdPASS) {
-      
-      // 2. Calcula o Erro
-      float erro = 0.0 - dadosRecebidos.anguloPitch;
-      // 3. Controlador (MCM)
-      float acao_controle = erro * 1.5; // Exemplo de PID
-      // 4. Objeto Motor atua na física
-      motor->setVelocidade(acao_controle);
-
-      Serial.printf("Core 1 (Controle): Erro: %.2f, Ação: %.2f\n", erro, acao_controle);
+void taskSensor(void* pvParams) {
+    auto* p = (TaskParams*)pvParams;
+    SensorData data;
+    for (;;) {
+        data = p->sensor->read();
+        xQueueSend(p->queue, &data, portMAX_DELAY);
+        Serial.printf("[Sensor] pitch=%.2f\n", data.pitch);
+        vTaskDelay(pdMS_TO_TICKS(1000 / FREQ_SENSOR_HZ));
     }
-    // Garante cravado o tempo de ciclo
-    vTaskDelayUntil(&xLastWakeTime, xFrequency); 
-  }
 }
 
-// ==========================================
-// SETUP INICIAL
-// ==========================================
+void taskControl(void* pvParams) {
+    auto* p = (TaskParams*)pvParams;
+    TickType_t lastWake = xTaskGetTickCount();
+    SensorData last = {};
+    SensorData data;
+
+    for (;;) {
+        if (xQueueReceive(p->queue, &data, 0) == pdPASS)
+            last = data;
+
+        float error = 0.0f - last.pitch;
+        float output = error * KP;
+        p->motor->setVelocidade(output);
+
+        Serial.printf("[Control] error=%.2f output=%.2f\n", error, output);
+        vTaskDelayUntil(&lastWake, pdMS_TO_TICKS(1000 / FREQ_CONTROL_HZ));
+    }
+}
+
 void setup() {
-  Serial.begin(115200);
-  
-  // Inicia hardware
-  // Instanciação dos objetos (POO) no escopo do setup
-  static Motor motorPitch(PIN_MOTOR_PITCH_PWM, PIN_MOTOR_PITCH_DIR);
-  motorPitch.begin();
+    Serial.begin(115200);
 
-  static Sensor sensorPitch;
-  sensorPitch.begin();
+    static Motor motor(PIN_MOTOR_PITCH_PWM, PIN_MOTOR_PITCH_DIR);
+    motor.begin();
 
-  // Cria a fila capaz de segurar 5 leituras
-  QueueHandle_t filaSensores = xQueueCreate(5, sizeof(DadosSensores));
+    static Sensor sensor;
+    sensor.begin();
 
-  // Prepara os parâmetros para as tasks
-  static TaskParams taskParamsCore0;
-  taskParamsCore0.queue = filaSensores;
-  taskParamsCore0.sensor = &sensorPitch;
-  taskParamsCore0.motor = nullptr; // Não usado nesta task
+    static QueueHandle_t queue = xQueueCreate(5, sizeof(SensorData));
 
-  static TaskParams taskParamsCore1;
-  taskParamsCore1.queue = filaSensores;
-  taskParamsCore1.sensor = nullptr; // Não usado nesta task
-  taskParamsCore1.motor = &motorPitch;
+    static TaskParams sensorParams = { queue, &sensor, nullptr };
+    static TaskParams controlParams = { queue, nullptr, &motor };
 
-  // Inicia o RTOS Dual-Core
-  // Core 0: Leitura de Sensores (Telemetria)
-  xTaskCreatePinnedToCore(loopLeituraSensores, "LeituraSensores", TASK_STACK_SIZE, &taskParamsCore0, 1, NULL, 0);
-  // Core 1: Malha de Controle
-  xTaskCreatePinnedToCore(loopControle, "Controle", TASK_STACK_SIZE, &taskParamsCore1, 2, NULL, 1);
+    xTaskCreatePinnedToCore(taskSensor,  "sensor",  TASK_STACK_SIZE, &sensorParams,  1, NULL, 0);
+    xTaskCreatePinnedToCore(taskControl, "control", TASK_STACK_SIZE, &controlParams, 2, NULL, 1);
 }
 
 void loop() { vTaskDelete(NULL); }

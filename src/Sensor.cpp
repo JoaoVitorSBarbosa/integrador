@@ -1,20 +1,10 @@
 #include "Sensor.h"
-#include "Constants.h"
-
-Sensor::Sensor() {
-    // Construtor, se necessário inicializar algo
-}
 
 void Sensor::begin() {
-    // Inicialização de hardware do sensor, se houver
-    // Ex: Wire.begin(); para I2C
+    // TODO: Wire.begin() + init IIM-42652 via I2C
 }
 
-DadosSensores Sensor::lerDados() {
-    DadosSensores dados;
-    // Lógica de leitura real do sensor aqui
-    // Por enquanto, um exemplo fake:
-    dados.anguloPitch = 15.5; 
-    dados.anguloYaw = 0.0;
-    return dados;
+SensorData Sensor::read() {
+    // TODO: substituir por leitura real do IMU
+    return { .pitch = 15.5f, .yaw = 0.0f };
 }
