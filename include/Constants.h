@@ -9,6 +9,6 @@
 #define FREQ_SENSOR_HZ    50
 #define FREQ_CONTROL_HZ  100
 #define TASK_STACK_SIZE  4096
-#define KP  1.5f
+constexpr float KP = 1.5f;
 
 #endif

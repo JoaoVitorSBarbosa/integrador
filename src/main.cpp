@@ -29,6 +29,8 @@ void taskControl(void* pvParams) {
     TickType_t lastWake = xTaskGetTickCount();
     SensorData last = {};
     SensorData data;
+    // first read: block until sensor delivers
+    xQueueReceive(p->queue, &last, portMAX_DELAY);
 
     for (;;) {
         if (xQueueReceive(p->queue, &data, 0) == pdPASS)
@@ -53,6 +55,7 @@ void setup() {
     sensor.begin();
 
     static QueueHandle_t queue = xQueueCreate(5, sizeof(SensorData));
+    assert(queue != NULL);
 
     static TaskParams sensorParams = { queue, &sensor, nullptr };
     static TaskParams controlParams = { queue, nullptr, &motor };
