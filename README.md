@@ -7,7 +7,7 @@
 Control and telemetry firmware developed by the Electronics and Embedded Systems (ESE) team for the Bench Drone.
 
 ### 📌 About the Project
-The goal of this project is to provide a deterministic, real-time control loop to stabilize the Quanser Aero 2 (1-DOF and 2-DOF) using an ESP32-S3.
+The goal of this project is to provide a deterministic, real-time control loop to stabilize the bench drone (1-DOF and 2-DOF) using an ESP32-S3.
 
 ### 🧠 Firmware Architecture (Dual-Core RTOS)
 The system uses the native FreeRTOS from ESP-IDF to isolate critical processes:
@@ -35,7 +35,7 @@ The system uses the native FreeRTOS from ESP-IDF to isolate critical processes:
 Firmware de controle e telemetria desenvolvido pela equipe de Eletrônica e Sistemas Embarcados (ESE) para o Drone de Bancada.
 
 ### 📌 Sobre o Projeto
-O objetivo deste projeto é fornecer uma malha de controle determinística e em tempo real para estabilizar o Quanser Aero 2 (1-DOF e 2-DOF) utilizando um ESP32-S3.
+O objetivo deste projeto é fornecer uma malha de controle determinística e em tempo real para estabilizar o drone de bancada (1-DOF e 2-DOF) utilizando um ESP32-S3.
 
 ### 🧠 Arquitetura de Firmware (Dual-Core RTOS)
 O sistema utiliza o FreeRTOS nativo do ESP-IDF para isolar processos críticos:
