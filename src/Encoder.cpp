@@ -5,13 +5,14 @@ Encoder::Encoder(uint8_t pinA, uint8_t pinB)
     : pinA(pinA), pinB(pinB), pulseCount(0) {}
 
 void Encoder::begin() {
+    // NPN open collector requer pull-up para nível lógico correto
     pinMode(pinA, INPUT_PULLUP);
     pinMode(pinB, INPUT_PULLUP);
-    attachInterruptArg(digitalPinToInterrupt(pinA), isrHandler, this, CHANGE);
-    attachInterruptArg(digitalPinToInterrupt(pinB), isrHandler, this, CHANGE);
+    attachInterruptArg(digitalPinToInterrupt(pinA), isr, this, CHANGE);
+    attachInterruptArg(digitalPinToInterrupt(pinB), isr, this, CHANGE);
 }
 
-void IRAM_ATTR Encoder::isrHandler(void* arg) {
+void IRAM_ATTR Encoder::isr(void* arg) {
     Encoder* enc = static_cast<Encoder*>(arg);
     bool a = digitalRead(enc->pinA);
     bool b = digitalRead(enc->pinB);
@@ -19,8 +20,7 @@ void IRAM_ATTR Encoder::isrHandler(void* arg) {
 }
 
 float Encoder::getAngleDeg() const {
-    // 600 PPR x4 (quadratura CHANGE em A e B) = 2400 pulsos/volta
-    return (pulseCount / (float)ENCODER_PPR_X4) * 360.0f;
+    return (pulseCount / static_cast<float>(ENCODER_PPR_X4)) * 360.0f;
 }
 
 void Encoder::reset() {
