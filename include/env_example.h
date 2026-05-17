@@ -7,6 +7,4 @@
 #define AP_SSID "NomeDaRede"
 #define AP_PASSWORD "SenhaDaRede"
 
-#define ADMIN_PASS "senhaAdminGate"
-
 #endif
