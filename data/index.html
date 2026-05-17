@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Configuracao PID</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #0f172a;
+      color: #e2e8f0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .container { width: 100%; max-width: 480px; }
+
+    h1 {
+      text-align: center;
+      color: #06b6d4;
+      font-size: 1.4rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 32px;
+    }
+
+    .card {
+      background: #1e293b;
+      border: 1px solid #0e7490;
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+
+    .card h2 {
+      color: #67e8f9;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      margin-bottom: 20px;
+    }
+
+    .field { margin-bottom: 16px; }
+    .field:last-child { margin-bottom: 0; }
+
+    label {
+      display: block;
+      font-size: 0.7rem;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 6px;
+    }
+
+    input[type="number"] {
+      width: 100%;
+      padding: 10px 14px;
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      color: #e2e8f0;
+      font-size: 1rem;
+      outline: none;
+      transition: border-color 0.15s;
+      -moz-appearance: textfield;
+      appearance: textfield;
+    }
+
+    input[type="number"]::-webkit-outer-spin-button,
+    input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; }
+
+    input[type="number"]:focus { border-color: #06b6d4; }
+
+    button {
+      width: 100%;
+      padding: 14px;
+      background: #06b6d4;
+      color: #0f172a;
+      font-size: 0.875rem;
+      font-weight: 700;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      transition: background 0.15s;
+    }
+
+    button:hover { background: #0891b2; }
+    button:active { background: #0e7490; }
+
+    #status {
+      text-align: center;
+      margin-top: 14px;
+      font-size: 0.8rem;
+      min-height: 18px;
+      color: #06b6d4;
+      letter-spacing: 0.04em;
+    }
+
+    #status.error { color: #f87171; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Config PID</h1>
+
+    <div class="card">
+      <h2>Controlador 1</h2>
+      <div class="field">
+        <label>Kp</label>
+        <input type="number" id="Kp1" step="any" placeholder="0.000">
+      </div>
+      <div class="field">
+        <label>Ki</label>
+        <input type="number" id="Ki1" step="any" placeholder="0.000">
+      </div>
+      <div class="field">
+        <label>Kd</label>
+        <input type="number" id="Kd1" step="any" placeholder="0.000">
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Controlador 2</h2>
+      <div class="field">
+        <label>Kp</label>
+        <input type="number" id="Kp2" step="any" placeholder="0.000">
+      </div>
+      <div class="field">
+        <label>Ki</label>
+        <input type="number" id="Ki2" step="any" placeholder="0.000">
+      </div>
+      <div class="field">
+        <label>Kd</label>
+        <input type="number" id="Kd2" step="any" placeholder="0.000">
+      </div>
+    </div>
+
+    <button onclick="save()">Salvar</button>
+    <div id="status"></div>
+  </div>
+
+  <script>
+    async function load() {
+      try {
+        const res = await fetch('/api/params');
+        if (!res.ok) return;
+        const data = await res.json();
+        const c1 = data[0], c2 = data[1];
+        document.getElementById('Kp1').value = c1.Kp1;
+        document.getElementById('Ki1').value = c1.Ki1;
+        document.getElementById('Kd1').value = c1.Kd1;
+        document.getElementById('Kp2').value = c2.Kp2;
+        document.getElementById('Ki2').value = c2.Ki2;
+        document.getElementById('Kd2').value = c2.Kd2;
+      } catch (e) {
+        setStatus('Erro ao carregar parametros.', true);
+      }
+    }
+
+    async function save() {
+      const fields = ['Kp1', 'Ki1', 'Kd1', 'Kp2', 'Ki2', 'Kd2'];
+      const body = new URLSearchParams();
+      for (const id of fields) body.append(id, document.getElementById(id).value);
+
+      setStatus('Salvando...');
+      try {
+        const res = await fetch('/api/params', { method: 'POST', body });
+        res.ok ? setStatus('Salvo com sucesso.') : setStatus('Erro ao salvar.', true);
+      } catch (e) {
+        setStatus('Sem conexao com o dispositivo.', true);
+      }
+    }
+
+    function setStatus(msg, isError = false) {
+      const el = document.getElementById('status');
+      el.textContent = msg;
+      el.className = isError ? 'error' : '';
+    }
+
+    load();
+  </script>
+</body>
+</html>

@@ -3,10 +3,13 @@
 #include <freertos/task.h>
 #include <freertos/queue.h>
 
-#include "Constants.h"
+
 #include "Encoder.h"
+#include "constants.h"
 #include "Motor.h"
 #include "Sensor.h"
+#include "WebManager.h"
+#include "env.h"
 
 static QueueHandle_t ctrlQueue;
 static QueueHandle_t telemQueue;
@@ -61,6 +64,8 @@ void taskControl(void* pvParams) {
     TickType_t lastWake = xTaskGetTickCount();
     SensorData last     = {};
     SensorData data;
+    // first read: block until sensor delivers
+    xQueueReceive(p->queue, &last, portMAX_DELAY);
 
     for (;;) {
         if (xQueueReceive(p->ctrlQueue, &data, 0) == pdPASS) {
@@ -87,12 +92,16 @@ void taskControl(void* pvParams) {
 // -----------------------------------------------------------------
 void setup() {
     Serial.begin(115200);
+    static WebManager webMan(AP_SSID, AP_PASSWORD);
+    webMan.begin();
+    delay(10);
 
     // Encoders
     static Encoder encPitch(PIN_ENC_PITCH_A, PIN_ENC_PITCH_B);
     static Encoder encYaw(PIN_ENC_YAW_A,     PIN_ENC_YAW_B);
     encPitch.begin();
     encYaw.begin();
+    delay(10);
 
     // Sensor (IMU + encoders)
     static Sensor sensor;
@@ -106,6 +115,10 @@ void setup() {
                           LEDC_CH_YAW_RPWM,     LEDC_CH_YAW_LPWM);
     motorPitch.begin();
     motorYaw.begin();
+    delay(10);
+
+    static QueueHandle_t queue = xQueueCreate(5, sizeof(SensorData));
+    assert(queue != NULL);
 
     // Filas
     ctrlQueue  = xQueueCreate(5,  sizeof(SensorData));

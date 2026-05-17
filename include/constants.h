@@ -47,4 +47,9 @@
 #define KI  0.0f
 #define KD  0.0f
 
+#define FREQ_SENSOR_HZ    50
+#define FREQ_CONTROL_HZ  100
+#define TASK_STACK_SIZE  4096
+constexpr float KP = 1.5f;
+
 #endif  // CONSTANTS_H
