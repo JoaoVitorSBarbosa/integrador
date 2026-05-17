@@ -4,6 +4,8 @@
 #include <Arduino.h>
 #include <ESPAsyncWebServer.h>
 #include <WiFi.h>
+#include <LittleFS.h>
+#include "env.h"
 
 class WebManager {
  private:

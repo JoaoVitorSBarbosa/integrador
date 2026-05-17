@@ -1,5 +1,4 @@
 #include "Encoder.h"
-#include "Constants.h"
 
 Encoder::Encoder(uint8_t pinA, uint8_t pinB)
     : pinA(pinA), pinB(pinB), pulseCount(0) {}

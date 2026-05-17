@@ -1,9 +1,5 @@
 #include "WebManager.h"
 
-#include <LittleFS.h>
-
-#include "env.h"
-
 // Inicializa o servidor na porta 80 e define as credenciais
 
 WebManager::WebManager(const char* apSsid, const char* apPassword)

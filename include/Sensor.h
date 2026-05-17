@@ -4,7 +4,7 @@
 #include <Arduino.h>
 #include <Wire.h>
 #include <ICM42670P.h>
-#include "Constants.h"
+#include "constants.h"
 #include "Encoder.h"
 
 // Em 1DOF yaw será sempre 0
