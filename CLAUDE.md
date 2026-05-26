@@ -1,0 +1,107 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Git Conventions
+
+Commit messages, PR titles, PR descriptions, and branch names must be written in **English**, following the Conventional Commits standard:
+
+```
+<type>: <short imperative summary>
+
+Optional body explaining the why, not the what.
+```
+
+Common types: `feat`, `fix`, `refactor`, `docs`, `chore`.
+
+- Subject line: 50 chars max, no period at the end
+- Body: wrap at 72 chars, separated from subject by a blank line
+- PR title mirrors the main commit message
+- PR body: `## Summary` (bullet list of changes) + `## Test plan` (checklist)
+
+## Build & Flash Commands
+
+All commands use the PlatformIO CLI (`pio`). The single build target is `esp32-s3-n16r8v`.
+
+```bash
+pio run                          # compilar
+pio run --target upload          # compilar e gravar no ESP32-S3
+pio run --target uploadfs        # gravar filesystem LittleFS (páginas web em data/)
+pio device monitor               # abrir monitor serial (115200 baud)
+pio run --target upload && pio device monitor   # gravar e monitorar em sequência
+```
+
+> `uploadfs` é necessário sempre que arquivos em `data/` forem modificados — o filesystem é uma partição separada do firmware.
+
+## Credenciais Wi-Fi
+
+O arquivo `include/env.h` **não está no repositório** (gitignored). Copie o molde e preencha:
+
+```bash
+cp include/env_example.h include/env.h
+# edite AP_SSID e AP_PASSWORD em env.h
+```
+
+## Arquitetura
+
+### Visão geral
+
+Firmware embarcado para um drone de bancada (1-DOF / 2-DOF), rodando em **ESP32-S3 DevKitC-1** com FreeRTOS em dual-core. O objetivo é uma malha de controle determinística a 100 Hz com telemetria paralela.
+
+### Tasks FreeRTOS (`src/main.cpp`)
+
+| Task | Core | Frequência | Responsabilidade |
+|------|------|------------|-----------------|
+| `taskSensor` | 0 | 50 Hz | Lê `IMU::read()` e envia dados para `ctrlQueue` e `telemQueue` |
+| `taskTelemetry` | 0 | 50 Hz | Consome `telemQueue`, imprime CSV via Serial e envia JSON via SSE ao browser |
+| `taskControl` | 1 | 100 Hz | Consome `ctrlQueue`, calcula erro e aciona motores (PID a implementar) |
+
+A comunicação entre tasks é exclusivamente via **FreeRTOS queues** (`ctrlQueue` com depth 5, `telemQueue` com depth 10). O `loop()` deleta a própria task — padrão correto para FreeRTOS no Arduino.
+
+### Fluxo de dados
+
+```
+IMU::read() ──► ctrlQueue ──► taskControl ──► Motor::setVelocidade()
+           └──► telemQueue ──► taskTelemetry ──► Serial CSV
+                                            └──► WebManager::sendTelemetry() ──► SSE /api/events
+```
+
+### Classes principais
+
+- **`IMU`** (`include/IMU.h`): encapsula ICM42670P (I2C) + leitura opcional de dois encoders. Produz `SensorData` com pitch (acelerômetro), yaw (integração giroscópio), e ângulos dos encoders.
+- **`Motor`** (`include/Motor.h`): abstração LEDC PWM para driver bidirecional (RPWM/LPWM). `setVelocidade(float)` aceita range `[-MOTOR_PWM_MAX_DUTY, +MOTOR_PWM_MAX_DUTY]`.
+- **`Encoder`** (`include/Encoder.h`): encoder óptico em quadratura via interrupção (`IRAM_ATTR`). 600 PPR × 4 = 2400 pulsos/volta.
+- **`WebManager`** (`include/WebManager.h`): servidor HTTP assíncrono (ESPAsyncWebServer). Expõe `attachMotors()` para controle remoto e `sendTelemetry(json)` para SSE.
+- **`Tests`** (`include/Tests.h`): rotinas de teste usando template specialization — `singleTest<T>(obj)` despacha para o método correspondente em tempo de compilação.
+
+### Interface Web
+
+O ESP32 sobe como **Access Point** (credenciais em `env.h`). Páginas servidas via LittleFS:
+
+| Rota | Arquivo | Função |
+|------|---------|--------|
+| `/` | `data/index.html` | Configuração dos ganhos PID |
+| `/test` | `data/test.html` | Teste de motor (duty cycle + SSE telemetria) |
+| `POST /api/test/motor` | — | Aciona motor: params `motor` (0=Pitch, 1=Yaw), `duty` |
+| `POST /api/test/stop` | — | Para ambos os motores |
+| `GET /api/events` | — | SSE stream com JSON `{pitch, yaw, encPitch, encYaw}` |
+
+### PWM dos Motores
+
+- Frequência: 20 kHz (inaudível)
+- Resolução atual: 8 bits (duty 0–255). Máximo possível a 20 kHz: **11 bits** (duty 0–2047)
+- Para aumentar: alterar `MOTOR_PWM_RESOLUTION` e `MOTOR_PWM_MAX_DUTY` em `constants.h`
+
+### Ponto de integração do PID
+
+Em `taskControl` (`src/main.cpp`), as linhas marcadas com `TODO (MCM)` são onde a equipe de Modelagem deve substituir o erro proporcional direto pela lei de controle PID/SMC:
+
+```cpp
+float errPitch = 0.0f - last.pitch;
+// TODO (MCM): substituir por PID
+p->motorPitch->setVelocidade(errPitch);
+```
+
+### Warning conhecido
+
+A lib ICM42670P emite um warning de ambiguidade de overload em `requestFrom()` durante a compilação. É um problema interno da biblioteca, não afeta o firmware, e pode ser ignorado.
