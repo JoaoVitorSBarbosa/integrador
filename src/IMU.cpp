@@ -1,15 +1,14 @@
-#include "Sensor.h"
+#include "IMU.h"
 #include <math.h>
 
-Sensor::Sensor() : imu(Wire, 0) {}
+IMU::IMU() : imu(Wire, 0) {}
 
-void Sensor::begin() {
+void IMU::begin() {
     Wire.begin(IMU_SDA, IMU_SCL);
 
     int ret = imu.begin();
-
     if (ret != 0) {
-        Serial.printf("[Sensor] Falha ao iniciar IMU, codigo %d\n", ret);
+        Serial.printf("[IMU] Falha ao iniciar ICM42670, codigo %d\n", ret);
         while (true) {
             delay(1000);
         }
@@ -20,15 +19,15 @@ void Sensor::begin() {
 
     lastReadUs = micros();
 
-    Serial.println("[Sensor] ICM42670 iniciado");
+    Serial.println("[IMU] ICM42670 iniciado");
 }
 
-void Sensor::attachEncoders(Encoder* pitch, Encoder* yaw) {
+void IMU::attachEncoders(Encoder* pitch, Encoder* yaw) {
     encPitch = pitch;
-    encYaw = yaw;
+    encYaw   = yaw;
 }
 
-SensorData Sensor::read() {
+SensorData IMU::read() {
     SensorData data = {};
 
     inv_imu_sensor_event_t event;
@@ -38,10 +37,8 @@ SensorData Sensor::read() {
         float az = event.accel[2] / 1000.0f;
         float gz = event.gyro[2] / 1000.0f;
 
-        // Pitch usando acelerômetro
         data.pitch = atan2f(ay, az) * 180.0f / PI;
 
-        // Integra yaw via giroscópio
         unsigned long now = micros();
         float dt = (now - lastReadUs) / 1000000.0f;
         lastReadUs = now;
@@ -50,14 +47,8 @@ SensorData Sensor::read() {
         data.yaw = yawAccum;
     }
 
-    // Encoders
-    data.encPitchDeg = (encPitch != nullptr)
-        ? encPitch->getAngleDeg()
-        : 0.0f;
-
-    data.encYawDeg = (encYaw != nullptr)
-        ? encYaw->getAngleDeg()
-        : 0.0f;
+    data.encPitchDeg = encPitch ? encPitch->getAngleDeg() : 0.0f;
+    data.encYawDeg   = encYaw   ? encYaw->getAngleDeg()   : 0.0f;
 
     return data;
 }

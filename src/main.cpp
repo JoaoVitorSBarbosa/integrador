@@ -8,9 +8,8 @@
 
 #include "Encoder.h"
 #include "Motor.h"
-#include "Sensor.h"
+#include "IMU.h"
 #include "WebManager.h"
-
 
 static QueueHandle_t ctrlQueue;
 static QueueHandle_t telemQueue;
@@ -18,9 +17,10 @@ static QueueHandle_t telemQueue;
 struct TaskParams {
     QueueHandle_t ctrlQueue;
     QueueHandle_t telemQueue;
-    Sensor*       sensor;
+    IMU*          sensor;
     Motor*        motorPitch;
     Motor*        motorYaw;
+    WebManager*   web;
 };
 
 // -----------------------------------------------------------------
@@ -32,20 +32,21 @@ void taskSensor(void* pvParams) {
     for (;;) {
         data = p->sensor->read();
         xQueueSend(p->ctrlQueue,  &data, portMAX_DELAY);
-        xQueueSend(p->telemQueue, &data, 0);    // não bloqueia
+        xQueueSend(p->telemQueue, &data, 0);
         vTaskDelay(pdMS_TO_TICKS(1000 / FREQ_SENSOR_HZ));
     }
 }
 
 // -----------------------------------------------------------------
-// Core 0 — Telemetria CSV para MATLAB/Simulink a FREQ_TELEMETRY_HZ
+// Core 0 — Telemetria Serial (CSV) + Web (SSE) a FREQ_TELEMETRY_HZ
 // -----------------------------------------------------------------
 void taskTelemetry(void* pvParams) {
     auto* p = static_cast<TaskParams*>(pvParams);
     SensorData data;
     uint32_t t = 0;
+
+    // aguarda primeiro dado antes de imprimir o cabeçalho
     xQueueReceive(p->telemQueue, &data, portMAX_DELAY);
-    
     Serial.println("t_ms,pitch_deg,yaw_deg,enc_pitch_deg,enc_yaw_deg");
 
     for (;;) {
@@ -53,6 +54,15 @@ void taskTelemetry(void* pvParams) {
             Serial.printf("%lu,%.4f,%.4f,%.4f,%.4f\n",
                 t, data.pitch, data.yaw,
                 data.encPitchDeg, data.encYawDeg);
+
+            if (p->web) {
+                char buf[128];
+                snprintf(buf, sizeof(buf),
+                    "{\"pitch\":%.2f,\"yaw\":%.2f,\"encPitch\":%.2f,\"encYaw\":%.2f}",
+                    data.pitch, data.yaw, data.encPitchDeg, data.encYawDeg);
+                p->web->sendTelemetry(buf);
+            }
+
             t += (1000 / FREQ_TELEMETRY_HZ);
         }
     }
@@ -66,7 +76,6 @@ void taskControl(void* pvParams) {
     TickType_t lastWake = xTaskGetTickCount();
     SensorData last     = {};
     SensorData data;
-    // first read: block until sensor delivers
     xQueueReceive(p->ctrlQueue, &last, portMAX_DELAY);
 
     for (;;) {
@@ -80,7 +89,6 @@ void taskControl(void* pvParams) {
         p->motorPitch->setVelocidade(errPitch);
 
         // --- Eixo Yaw ---
-        // Em 1DOF: yaw travado fisicamente → last.yaw = 0 → errYaw = 0 → duty = 0
         float errYaw = 0.0f - last.yaw;
         // TODO (MCM): substituir por PID
         p->motorYaw->setVelocidade(errYaw);
@@ -94,47 +102,38 @@ void taskControl(void* pvParams) {
 // -----------------------------------------------------------------
 void setup() {
     Serial.begin(115200);
-    static WebManager webMan(AP_SSID, AP_PASSWORD);
-    webMan.begin();
-    delay(10);
 
-    // Encoders
     static Encoder encPitch(PIN_ENC_PITCH_A, PIN_ENC_PITCH_B);
     static Encoder encYaw(PIN_ENC_YAW_A,     PIN_ENC_YAW_B);
     encPitch.begin();
     encYaw.begin();
-    delay(10);
 
-    // Sensor (IMU + encoders)
-    static Sensor sensor;
+    static IMU sensor;
     sensor.begin();
     sensor.attachEncoders(&encPitch, &encYaw);
 
-    // Motores
     static Motor motorPitch(PIN_MOTOR_PITCH_RPWM, PIN_MOTOR_PITCH_LPWM,
                             LEDC_CH_PITCH_RPWM,   LEDC_CH_PITCH_LPWM);
     static Motor motorYaw(PIN_MOTOR_YAW_RPWM,   PIN_MOTOR_YAW_LPWM,
                           LEDC_CH_YAW_RPWM,     LEDC_CH_YAW_LPWM);
     motorPitch.begin();
     motorYaw.begin();
-    delay(10);
 
-    // Filas
+    static WebManager webMan(AP_SSID, AP_PASSWORD);
+    webMan.attachMotors(&motorPitch, &motorYaw);
+    webMan.begin();
+
     ctrlQueue  = xQueueCreate(5,  sizeof(SensorData));
     telemQueue = xQueueCreate(10, sizeof(SensorData));
 
-    // Parâmetros das tasks
-    static TaskParams sensorParams  = {ctrlQueue, telemQueue, &sensor,  nullptr,     nullptr};
-    static TaskParams controlParams = {ctrlQueue, nullptr,    nullptr,  &motorPitch, &motorYaw};
-    static TaskParams telemParams   = {nullptr,   telemQueue, nullptr,  nullptr,     nullptr};
+    static TaskParams sensorParams  = {ctrlQueue, telemQueue, &sensor,  nullptr,      nullptr,     nullptr};
+    static TaskParams controlParams = {ctrlQueue, nullptr,    nullptr,  &motorPitch,  &motorYaw,   nullptr};
+    static TaskParams telemParams   = {nullptr,   telemQueue, nullptr,  nullptr,      nullptr,     &webMan};
 
-    // Core 0: sensores + telemetria
     xTaskCreatePinnedToCore(
         taskSensor,    "sensor",    TASK_STACK_SIZE, &sensorParams,  1, NULL, 0);
     xTaskCreatePinnedToCore(
         taskTelemetry, "telemetry", TASK_STACK_SIZE, &telemParams,   1, NULL, 0);
-
-    // Core 1: controle crítico
     xTaskCreatePinnedToCore(
         taskControl,   "control",   TASK_STACK_SIZE, &controlParams, 2, NULL, 1);
 }

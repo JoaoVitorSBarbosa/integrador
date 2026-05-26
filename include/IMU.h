@@ -1,5 +1,5 @@
-#ifndef SENSOR_H
-#define SENSOR_H
+#ifndef IMU_H
+#define IMU_H
 
 #include <Arduino.h>
 #include <Wire.h>
@@ -15,16 +15,16 @@ struct SensorData {
     float encYawDeg;    // encoder yaw
 };
 
-class Sensor {
+class IMU {
 public:
-    Sensor();  
+    IMU();
 
     void begin();
     void attachEncoders(Encoder* pitch, Encoder* yaw);
     SensorData read();
 
 private:
-    ICM42670 imu;       
+    ICM42670 imu;
 
     Encoder* encPitch = nullptr;
     Encoder* encYaw   = nullptr;
