@@ -1,57 +1,111 @@
-#  Firmware de Controle  🚁
+# Firmware de Controle — Drone de Bancada
+
+Firmware de controle e telemetria desenvolvido pela equipe de Eletrônica e Sistemas Embarcados (ESE) para estabilização do drone de bancada em 1-DOF e 2-DOF, utilizando ESP32-S3.
 
 ---
 
-## English
+## Hardware
 
-Control and telemetry firmware developed by the Electronics and Embedded Systems (ESE) team for the Bench Drone.
-
-### 📌 About the Project
-The goal of this project is to provide a deterministic, real-time control loop to stabilize the bench drone (1-DOF and 2-DOF) using an ESP32-S3.
-
-### 🧠 Firmware Architecture (Dual-Core RTOS)
-The system uses the native FreeRTOS from ESP-IDF to isolate critical processes:
-* **Core 1 (Critical Control):** Sampling frequency fixed at 100Hz (10ms) responsible for reading Encoders/IMU, calculating the control law (PID/SMC), and acting on the motors' PWM.
-* **Core 0 (Telemetry):** Responsible for real-time data transmission (CSV via Serial) for external processing in MATLAB/Simulink by the MCM (Modeling) team.
-
-### 🖼️ System Architecture Diagram
-![Firmware Architecture](assets/fluxograma_in.png)
-
-### ⚙️ Hardware
-* **Microcontroller:** ESP32-S3 DevKitC-1 (16MB Flash, 8MB PSRAM)
-* **Sensors:** Quadrature Optical Encoders
-* **Actuators:** DC Motors with PWM drivers
-
-### 📝 Roadmap (PC2)
-- [x] Hardware Mapping (Pinout)
-- [x] Real-Time Environment Setup (FreeRTOS)
-- [x] Dual-Core Loop Implementation
-- [ ] Integration of Modeling equations (MCM Team)
+| Componente | Modelo / Detalhe |
+|---|---|
+| Microcontrolador | ESP32-S3 DevKitC-1 (16 MB Flash, 8 MB PSRAM) |
+| IMU | ICM42670P (I2C) |
+| Encoders | Ópticos em quadratura — 600 PPR × 4 = 2400 pulsos/volta |
+| Motores | DC com driver PWM bidirecional (RPWM/LPWM) |
 
 ---
 
-## Português
+## Arquitetura de Firmware
 
-Firmware de controle e telemetria desenvolvido pela equipe de Eletrônica e Sistemas Embarcados (ESE) para o Drone de Bancada.
+O sistema usa FreeRTOS em dual-core para isolar o controle crítico da telemetria:
 
-### 📌 Sobre o Projeto
-O objetivo deste projeto é fornecer uma malha de controle determinística e em tempo real para estabilizar o drone de bancada (1-DOF e 2-DOF) utilizando um ESP32-S3.
-
-### 🧠 Arquitetura de Firmware (Dual-Core RTOS)
-O sistema utiliza o FreeRTOS nativo do ESP-IDF para isolar processos críticos:
-* **Core 1 (Controle Crítico):** Frequência de amostragem cravada em 100Hz (10ms) responsável por ler os Encoders/IMU, calcular a lei de controle (PID/SMC) e atuar sobre o PWM dos motores.
-* **Core 0 (Telemetria):** Responsável pelo envio em tempo real (CSV via Serial) das variáveis de estado para processamento externo no MATLAB/Simulink pela equipe de Modelagem (MCM).
-
-### 🖼️ Diagrama da Arquitetura
 ![Arquitetura de Firmware](assets/fluxograma_pt.png)
 
-### ⚙️ Hardware Utilizado
-* **Microcontrolador:** ESP32-S3 DevKitC-1 (16MB Flash, 8MB PSRAM)
-* **Sensores:** Encoders Ópticos em Quadratura
-* **Atuadores:** Motores DC com drivers PWM
+| Task | Core | Frequência | Responsabilidade |
+|---|---|---|---|
+| `taskSensor` | 0 | 50 Hz | Lê IMU + encoders e distribui dados via filas |
+| `taskTelemetry` | 0 | 50 Hz | Envia CSV via Serial e JSON via SSE para o browser |
+| `taskControl` | 1 | 100 Hz | Lê dados da fila, calcula lei de controle e aciona motores |
 
-### 📝 Roadmap (PC2)
-- [x] Mapeamento de Hardware (Pinout)
-- [x] Configuração do Ambiente de Tempo Real (FreeRTOS)
-- [x] Implementação do Loop Dual-Core
-- [ ] Integração das equações da equipe de Modelagem
+A comunicação entre tasks é feita exclusivamente por **filas FreeRTOS** — sem variáveis globais compartilhadas.
+
+```
+IMU::read() ──► ctrlQueue  ──► taskControl   ──► Motor::setVelocidade()
+           └──► telemQueue ──► taskTelemetry ──► Serial (CSV para MATLAB)
+                                             └──► SSE /api/events (browser)
+```
+
+---
+
+## Interface Web
+
+O ESP32 sobe como **Access Point Wi-Fi**. Conecte-se à rede configurada e acesse `192.168.4.1` no browser.
+
+| Página | Rota | Função |
+|---|---|---|
+| Config PID | `/` | Ajuste dos ganhos Kp, Ki, Kd de cada controlador |
+| Teste de Motor | `/test` | Controle manual de duty cycle com telemetria em tempo real |
+
+---
+
+## Como começar
+
+### Pré-requisitos
+
+- [PlatformIO](https://platformio.org/) instalado (extensão VS Code ou CLI)
+- ESP32-S3 conectado via USB
+
+### 1. Clonar e configurar credenciais
+
+```bash
+git clone <url-do-repo>
+cd integrador
+cp include/env_example.h include/env.h
+```
+
+Edite `include/env.h` com o nome e senha da rede Wi-Fi que o ESP32 irá criar:
+
+```cpp
+#define AP_SSID     "NomeDaRede"
+#define AP_PASSWORD "SenhaDaRede"
+```
+
+### 2. Compilar e gravar
+
+```bash
+pio run --target upload      # grava o firmware
+pio run --target uploadfs    # grava as páginas web (rodar uma vez ou ao alterar data/)
+pio device monitor           # abre o monitor serial (115200 baud)
+```
+
+---
+
+## Integração — Equipe de Modelagem (MCM)
+
+A lei de controle deve ser inserida em `src/main.cpp`, dentro de `taskControl`, nos trechos marcados com `TODO (MCM)`:
+
+```cpp
+float errPitch = 0.0f - last.pitch;
+// TODO (MCM): substituir por PID
+p->motorPitch->setVelocidade(errPitch);
+```
+
+Os dados disponíveis em `SensorData` são:
+
+| Campo | Descrição |
+|---|---|
+| `pitch` | Ângulo pitch em graus (acelerômetro IMU) |
+| `yaw` | Ângulo yaw em graus (integração giroscópio) |
+| `encPitchDeg` | Ângulo do encoder de pitch em graus |
+| `encYawDeg` | Ângulo do encoder de yaw em graus |
+
+---
+
+## Roadmap
+
+- [x] Mapeamento de hardware e pinout
+- [x] Ambiente FreeRTOS dual-core
+- [x] Leitura de IMU (ICM42670P) e encoders em quadratura
+- [x] Telemetria Serial (CSV) para MATLAB/Simulink
+- [x] Interface web com configuração PID e teste de motor
+- [ ] Integração da lei de controle (equipe MCM)
