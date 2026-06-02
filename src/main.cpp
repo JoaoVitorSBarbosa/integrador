@@ -9,14 +9,18 @@
 #include "Encoder.h"
 #include "Motor.h"
 #include "IMU.h"
+#include "MotorCmd.h"
 #include "WebManager.h"
+
 
 static QueueHandle_t ctrlQueue;
 static QueueHandle_t telemQueue;
+static QueueHandle_t motorCmdQueue;
 
 struct TaskParams {
     QueueHandle_t ctrlQueue;
     QueueHandle_t telemQueue;
+    QueueHandle_t motorCmdQueue;
     IMU*          sensor;
     Motor*        motorPitch;
     Motor*        motorYaw;
@@ -45,7 +49,6 @@ void taskTelemetry(void* pvParams) {
     SensorData data;
     uint32_t t = 0;
 
-    // aguarda primeiro dado antes de imprimir o cabeçalho
     xQueueReceive(p->telemQueue, &data, portMAX_DELAY);
     Serial.println("t_ms,pitch_deg,yaw_deg,enc_pitch_deg,enc_yaw_deg");
 
@@ -76,6 +79,8 @@ void taskControl(void* pvParams) {
     TickType_t lastWake = xTaskGetTickCount();
     SensorData last     = {};
     SensorData data;
+    MotorCmd   lastCmd;     // default: mode=CONTROL, duty=0
+
     xQueueReceive(p->ctrlQueue, &last, portMAX_DELAY);
 
     for (;;) {
@@ -83,15 +88,23 @@ void taskControl(void* pvParams) {
             last = data;
         }
 
-        // --- Eixo Pitch ---
-        float errPitch = 0.0f - last.pitch;
-        // TODO (MCM): substituir por PID
-        p->motorPitch->setVelocidade(errPitch);
+        // Atualiza comando se o WebManager postou um novo
+        MotorCmd newCmd;
+        if (xQueueReceive(p->motorCmdQueue, &newCmd, 0) == pdPASS) {
+            lastCmd = newCmd;
+        }
 
-        // --- Eixo Yaw ---
-        float errYaw = 0.0f - last.yaw;
-        // TODO (MCM): substituir por PID
-        p->motorYaw->setVelocidade(errYaw);
+        if (lastCmd.mode == MotorCmd::Mode::TEST) {
+            p->motorPitch->setVelocidade(lastCmd.dutyPitch);
+            p->motorYaw->setVelocidade(lastCmd.dutyYaw);
+        } else {
+            // TODO (MCM): substituir por PID
+            float errPitch = 0.0f - last.pitch;
+            p->motorPitch->setVelocidade(errPitch);
+
+            float errYaw = 0.0f - last.yaw;
+            p->motorYaw->setVelocidade(errYaw);
+        }
 
         vTaskDelayUntil(&lastWake, pdMS_TO_TICKS(1000 / FREQ_CONTROL_HZ));
     }
@@ -101,6 +114,7 @@ void taskControl(void* pvParams) {
 // Setup
 // -----------------------------------------------------------------
 void setup() {
+    delay(5000);
     Serial.begin(115200);
 
     static Encoder encPitch(PIN_ENC_PITCH_A, PIN_ENC_PITCH_B);
@@ -119,16 +133,17 @@ void setup() {
     motorPitch.begin();
     motorYaw.begin();
 
+    ctrlQueue     = xQueueCreate(5,  sizeof(SensorData));
+    telemQueue    = xQueueCreate(10, sizeof(SensorData));
+    motorCmdQueue = xQueueCreate(1,  sizeof(MotorCmd));   // depth 1: só o comando mais recente importa
+
     static WebManager webMan(AP_SSID, AP_PASSWORD);
-    webMan.attachMotors(&motorPitch, &motorYaw);
+    webMan.attachMotorQueue(motorCmdQueue);
     webMan.begin();
 
-    ctrlQueue  = xQueueCreate(5,  sizeof(SensorData));
-    telemQueue = xQueueCreate(10, sizeof(SensorData));
-
-    static TaskParams sensorParams  = {ctrlQueue, telemQueue, &sensor,  nullptr,      nullptr,     nullptr};
-    static TaskParams controlParams = {ctrlQueue, nullptr,    nullptr,  &motorPitch,  &motorYaw,   nullptr};
-    static TaskParams telemParams   = {nullptr,   telemQueue, nullptr,  nullptr,      nullptr,     &webMan};
+    static TaskParams sensorParams  = {ctrlQueue, telemQueue, nullptr,       &sensor, nullptr,      nullptr,    nullptr};
+    static TaskParams controlParams = {ctrlQueue, nullptr,    motorCmdQueue, nullptr, &motorPitch,  &motorYaw,  nullptr};
+    static TaskParams telemParams   = {nullptr,   telemQueue, nullptr,       nullptr, nullptr,      nullptr,    &webMan};
 
     xTaskCreatePinnedToCore(
         taskSensor,    "sensor",    TASK_STACK_SIZE, &sensorParams,  1, NULL, 0);
