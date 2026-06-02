@@ -5,8 +5,9 @@
 #include <ESPAsyncWebServer.h>
 #include <WiFi.h>
 #include <LittleFS.h>
+#include <freertos/queue.h>
 #include "env.h"
-#include "Motor.h"
+#include "MotorCmd.h"
 
 class WebManager {
 private:
@@ -14,13 +15,12 @@ private:
     AsyncEventSource events;
     const char* ssid;
     const char* password;
-    Motor* motorPitch = nullptr;
-    Motor* motorYaw   = nullptr;
+    QueueHandle_t motorCmdQueue = nullptr;
 
 public:
     WebManager(const char* ssid, const char* pass);
     void begin();
-    void attachMotors(Motor* pitch, Motor* yaw);
+    void attachMotorQueue(QueueHandle_t queue);
     void sendTelemetry(const char* json);
 };
 

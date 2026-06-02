@@ -29,6 +29,7 @@ private:
     Encoder* encPitch = nullptr;
     Encoder* encYaw   = nullptr;
 
+    bool available = false;
     float yawAccum = 0.0f;
     unsigned long lastReadUs = 0;
 };

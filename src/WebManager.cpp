@@ -1,4 +1,5 @@
 #include "WebManager.h"
+#include "constants.h"
 
 WebManager::WebManager(const char* apSsid, const char* apPassword)
     : server(80), events("/api/events") {
@@ -6,9 +7,8 @@ WebManager::WebManager(const char* apSsid, const char* apPassword)
     this->password = apPassword;
 }
 
-void WebManager::attachMotors(Motor* pitch, Motor* yaw) {
-    motorPitch = pitch;
-    motorYaw   = yaw;
+void WebManager::attachMotorQueue(QueueHandle_t queue) {
+    motorCmdQueue = queue;
 }
 
 void WebManager::sendTelemetry(const char* json) {
@@ -76,8 +76,8 @@ void WebManager::begin() {
 
     // --- Teste de motor ---
     server.on("/api/test/motor", HTTP_POST, [this](AsyncWebServerRequest* request) {
-        if (!motorPitch || !motorYaw) {
-            request->send(503, "text/plain", "Motores nao inicializados");
+        if (!motorCmdQueue) {
+            request->send(503, "text/plain", "Motor queue not initialized");
             return;
         }
 
@@ -86,17 +86,29 @@ void WebManager::begin() {
 
         duty = constrain(duty, -MOTOR_PWM_MAX_DUTY, MOTOR_PWM_MAX_DUTY);
 
-        if (motor == 0)
-            motorPitch->setVelocidade(duty);
-        else
-            motorYaw->setVelocidade(duty);
+        MotorCmd cmd;
+        cmd.mode = MotorCmd::Mode::TEST;
+        cmd.dutyPitch = (motor == 0) ? static_cast<float>(duty) : 0.0f;
+        cmd.dutyYaw   = (motor == 1) ? static_cast<float>(duty) : 0.0f;
 
+        xQueueOverwrite(motorCmdQueue, &cmd);
         request->send(200, "text/plain", "OK");
     });
 
     server.on("/api/test/stop", HTTP_POST, [this](AsyncWebServerRequest* request) {
-        if (motorPitch) motorPitch->parar();
-        if (motorYaw)   motorYaw->parar();
+        if (motorCmdQueue) {
+            MotorCmd cmd;   // mode=TEST, duty=0 nos dois motores
+            xQueueOverwrite(motorCmdQueue, &cmd);
+        }
+        request->send(200, "text/plain", "OK");
+    });
+
+    server.on("/api/test/control", HTTP_POST, [this](AsyncWebServerRequest* request) {
+        if (motorCmdQueue) {
+            MotorCmd cmd;
+            cmd.mode = MotorCmd::Mode::CONTROL;
+            xQueueOverwrite(motorCmdQueue, &cmd);
+        }
         request->send(200, "text/plain", "OK");
     });
 
