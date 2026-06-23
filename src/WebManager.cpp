@@ -7,12 +7,15 @@ WebManager::WebManager(const char* apSsid, const char* apPassword)
     this->password = apPassword;
 }
 
-void WebManager::attachMotorQueue(QueueHandle_t queue) {
-    motorCmdQueue = queue;
-}
+void WebManager::attachMotorQueue(QueueHandle_t queue) { motorCmdQueue = queue; }
+void WebManager::attachCalibQueue(QueueHandle_t queue) { calibCmdQueue = queue; }
 
 void WebManager::sendTelemetry(const char* json) {
     events.send(json, "telemetry", millis());
+}
+
+void WebManager::sendCalibStatus(const char* json) {
+    events.send(json, "calib", millis());
 }
 
 void WebManager::begin() {
@@ -20,31 +23,26 @@ void WebManager::begin() {
         Serial.println("Erro ao montar o LittleFS!");
         return;
     }
-    Serial.println("LittleFS montado com sucesso.");
-    Serial.println("Iniciando modo Access Point (AP)...");
+    Serial.println("LittleFS montado.");
 
     WiFi.softAP(ssid, password);
-    IPAddress apIp = WiFi.softAPIP();
-    Serial.print("Endereço IP do AP: ");
-    Serial.println(apIp);
+    Serial.print("AP IP: ");
+    Serial.println(WiFi.softAPIP());
 
-    // --- Páginas ---
-    server.on("/", HTTP_GET, [](AsyncWebServerRequest* request) {
-        request->send(LittleFS, "/index.html", "text/html");
+    // ── Páginas ──────────────────────────────────────────────────────────
+    server.on("/", HTTP_GET, [](AsyncWebServerRequest* req) {
+        req->send(LittleFS, "/index.html", "text/html");
     });
 
-    // --- LQI params ---
-    server.on("/api/params", HTTP_GET, [](AsyncWebServerRequest* request) {
-        request->send(LittleFS, "/parameters.json", "application/json");
+    // ── LQI params ───────────────────────────────────────────────────────
+    server.on("/api/params", HTTP_GET, [](AsyncWebServerRequest* req) {
+        req->send(LittleFS, "/parameters.json", "application/json");
     });
 
-    server.on("/api/params", HTTP_POST, [](AsyncWebServerRequest* request) {
+    server.on("/api/params", HTTP_POST, [](AsyncWebServerRequest* req) {
         auto get = [&](const char* key) -> String {
-            return request->hasParam(key, true)
-                ? request->getParam(key, true)->value()
-                : "0";
+            return req->hasParam(key, true) ? req->getParam(key, true)->value() : "0";
         };
-
         String json =
             "{\n"
             "    \"k1\": "       + get("k1")       + ",\n"
@@ -54,85 +52,107 @@ void WebManager::begin() {
             "    \"pitch_sp\": " + get("pitch_sp") + ",\n"
             "    \"yaw_sp\": "   + get("yaw_sp")   + "\n"
             "}";
-
         File f = LittleFS.open("/parameters.json", "w");
-        if (!f) {
-            request->send(500, "text/plain", "Erro ao abrir arquivo");
-            return;
-        }
+        if (!f) { req->send(500, "text/plain", "Erro ao abrir arquivo"); return; }
         f.print(json);
         f.close();
-        request->send(200, "text/plain", "OK");
+        req->send(200, "text/plain", "OK");
     });
 
-    // --- Teste de motor ---
-    server.on("/api/test/motor", HTTP_POST, [this](AsyncWebServerRequest* request) {
-        if (!motorCmdQueue) {
-            request->send(503, "text/plain", "Motor queue not initialized");
-            return;
+    // ── Calibração: GET status ────────────────────────────────────────────
+    server.on("/api/calibration", HTTP_GET, [](AsyncWebServerRequest* req) {
+        if (LittleFS.exists("/calibration.json")) {
+            req->send(LittleFS, "/calibration.json", "application/json");
+        } else {
+            req->send(200, "application/json", "{\"imuCalibrated\":false,\"motorCalibrated\":false}");
         }
+    });
 
-        int duty  = request->hasParam("duty",  true) ? request->getParam("duty",  true)->value().toInt() : 0;
-        int motor = request->hasParam("motor", true) ? request->getParam("motor", true)->value().toInt() : 0;
+    // ── Calibração: disparar rotinas via POST ─────────────────────────────
+    server.on("/api/calibrate/imu", HTTP_POST, [this](AsyncWebServerRequest* req) {
+        if (calibCmdQueue) {
+            CalibCmd cmd; cmd.type = CalibCmd::Type::IMU;
+            xQueueOverwrite(calibCmdQueue, &cmd);
+            req->send(200, "text/plain", "IMU calibration started");
+        } else {
+            req->send(503, "text/plain", "Calib queue not initialized");
+        }
+    });
 
+    server.on("/api/calibrate/motors", HTTP_POST, [this](AsyncWebServerRequest* req) {
+        if (calibCmdQueue) {
+            CalibCmd cmd; cmd.type = CalibCmd::Type::MOTORS;
+            xQueueOverwrite(calibCmdQueue, &cmd);
+            req->send(200, "text/plain", "Motor calibration started");
+        } else {
+            req->send(503, "text/plain", "Calib queue not initialized");
+        }
+    });
+
+    server.on("/api/calibrate/encoders", HTTP_POST, [this](AsyncWebServerRequest* req) {
+        if (calibCmdQueue) {
+            CalibCmd cmd; cmd.type = CalibCmd::Type::ENCODERS;
+            xQueueOverwrite(calibCmdQueue, &cmd);
+            req->send(200, "text/plain", "Encoder zeroing started");
+        } else {
+            req->send(503, "text/plain", "Calib queue not initialized");
+        }
+    });
+
+    server.on("/api/calibrate/reset", HTTP_POST, [this](AsyncWebServerRequest* req) {
+        if (calibCmdQueue) {
+            CalibCmd cmd; cmd.type = CalibCmd::Type::RESET;
+            xQueueOverwrite(calibCmdQueue, &cmd);
+            req->send(200, "text/plain", "Calibration reset");
+        } else {
+            req->send(503, "text/plain", "Calib queue not initialized");
+        }
+    });
+
+    // ── Teste de motor ────────────────────────────────────────────────────
+    server.on("/api/test/motor", HTTP_POST, [this](AsyncWebServerRequest* req) {
+        if (!motorCmdQueue) { req->send(503, "text/plain", "Queue not ready"); return; }
+        int duty  = req->hasParam("duty",  true) ? req->getParam("duty",  true)->value().toInt() : 0;
+        int motor = req->hasParam("motor", true) ? req->getParam("motor", true)->value().toInt() : 0;
         duty = constrain(duty, -MOTOR_PWM_MAX_DUTY, MOTOR_PWM_MAX_DUTY);
-
-        MotorCmd cmd;
-        cmd.mode = MotorCmd::Mode::TEST;
-        cmd.dutyPitch = (motor == 0) ? static_cast<float>(duty) : 0.0f;
-        cmd.dutyYaw   = (motor == 1) ? static_cast<float>(duty) : 0.0f;
-
-        xQueueOverwrite(motorCmdQueue, &cmd);
-        request->send(200, "text/plain", "OK");
-    });
-
-    // sets both motors simultaneously — used by the real-time dual sliders
-    server.on("/api/test/motors", HTTP_POST, [this](AsyncWebServerRequest* request) {
-        if (!motorCmdQueue) {
-            request->send(503, "text/plain", "Motor queue not initialized");
-            return;
-        }
-
-        int dutyPitch = request->hasParam("dutyPitch", true)
-            ? request->getParam("dutyPitch", true)->value().toInt() : 0;
-        int dutyYaw   = request->hasParam("dutyYaw",   true)
-            ? request->getParam("dutyYaw",   true)->value().toInt() : 0;
-
-        dutyPitch = constrain(dutyPitch, -MOTOR_PWM_MAX_DUTY, MOTOR_PWM_MAX_DUTY);
-        dutyYaw   = constrain(dutyYaw,   -MOTOR_PWM_MAX_DUTY, MOTOR_PWM_MAX_DUTY);
-
         MotorCmd cmd;
         cmd.mode      = MotorCmd::Mode::TEST;
-        cmd.dutyPitch = static_cast<float>(dutyPitch);
-        cmd.dutyYaw   = static_cast<float>(dutyYaw);
-
+        cmd.dutyPitch = (motor == 0) ? (float)duty : 0.0f;
+        cmd.dutyYaw   = (motor == 1) ? (float)duty : 0.0f;
         xQueueOverwrite(motorCmdQueue, &cmd);
-        request->send(200, "text/plain", "OK");
+        req->send(200, "text/plain", "OK");
     });
 
-    server.on("/api/test/stop", HTTP_POST, [this](AsyncWebServerRequest* request) {
-        if (motorCmdQueue) {
-            MotorCmd cmd;   // mode=TEST, duty=0 nos dois motores
-            xQueueOverwrite(motorCmdQueue, &cmd);
-        }
-        request->send(200, "text/plain", "OK");
+    server.on("/api/test/motors", HTTP_POST, [this](AsyncWebServerRequest* req) {
+        if (!motorCmdQueue) { req->send(503, "text/plain", "Queue not ready"); return; }
+        int dp = req->hasParam("dutyPitch", true) ? req->getParam("dutyPitch", true)->value().toInt() : 0;
+        int dy = req->hasParam("dutyYaw",   true) ? req->getParam("dutyYaw",   true)->value().toInt() : 0;
+        dp = constrain(dp, -MOTOR_PWM_MAX_DUTY, MOTOR_PWM_MAX_DUTY);
+        dy = constrain(dy, -MOTOR_PWM_MAX_DUTY, MOTOR_PWM_MAX_DUTY);
+        MotorCmd cmd;
+        cmd.mode      = MotorCmd::Mode::TEST;
+        cmd.dutyPitch = (float)dp;
+        cmd.dutyYaw   = (float)dy;
+        xQueueOverwrite(motorCmdQueue, &cmd);
+        req->send(200, "text/plain", "OK");
     });
 
-    server.on("/api/test/control", HTTP_POST, [this](AsyncWebServerRequest* request) {
-        if (motorCmdQueue) {
-            MotorCmd cmd;
-            cmd.mode = MotorCmd::Mode::CONTROL;
-            xQueueOverwrite(motorCmdQueue, &cmd);
-        }
-        request->send(200, "text/plain", "OK");
+    server.on("/api/test/stop", HTTP_POST, [this](AsyncWebServerRequest* req) {
+        if (motorCmdQueue) { MotorCmd cmd; cmd.mode = MotorCmd::Mode::TEST; xQueueOverwrite(motorCmdQueue, &cmd); }
+        req->send(200, "text/plain", "OK");
     });
 
-    // --- SSE telemetria ---
+    server.on("/api/test/control", HTTP_POST, [this](AsyncWebServerRequest* req) {
+        if (motorCmdQueue) { MotorCmd cmd; cmd.mode = MotorCmd::Mode::CONTROL; xQueueOverwrite(motorCmdQueue, &cmd); }
+        req->send(200, "text/plain", "OK");
+    });
+
+    // ── SSE ──────────────────────────────────────────────────────────────
     events.onConnect([](AsyncEventSourceClient* client) {
         client->send("{}", "telemetry", millis(), 1000);
     });
     server.addHandler(&events);
 
     server.begin();
-    Serial.println("Servidor Web iniciado na porta 80.");
+    Serial.println("Web server iniciado na porta 80.");
 }

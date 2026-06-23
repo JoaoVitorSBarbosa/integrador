@@ -23,54 +23,18 @@
       align-items: center;
       justify-content: space-between;
     }
-
-    .header-title {
-      color: #06b6d4;
-      font-size: 1rem;
-      font-weight: 700;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-    }
-
-    .conn-badge {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 0.7rem;
-      color: #64748b;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-    }
-
-    .dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: #334155;
-      transition: background 0.4s;
-    }
+    .header-title { color: #06b6d4; font-size: 1rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; }
+    .conn-badge { display: flex; align-items: center; gap: 6px; font-size: .7rem; color: #64748b; text-transform: uppercase; letter-spacing: .08em; }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: #334155; transition: background .4s; }
     .dot.on { background: #22c55e; }
 
-    /* ── Tab bar ── */
-    .tab-bar {
-      display: flex;
-      background: #1e293b;
-      border-bottom: 1px solid #0e7490;
-    }
-
+    /* ── Tabs ── */
+    .tab-bar { display: flex; background: #1e293b; border-bottom: 1px solid #0e7490; }
     .tab {
-      flex: 1;
-      padding: 12px 6px;
-      background: none;
-      border: none;
-      border-bottom: 2px solid transparent;
-      color: #64748b;
-      font-size: 0.72rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-      cursor: pointer;
-      transition: color 0.15s, border-color 0.15s;
+      flex: 1; padding: 12px 4px; background: none; border: none;
+      border-bottom: 2px solid transparent; color: #64748b;
+      font-size: .68rem; font-weight: 600; text-transform: uppercase;
+      letter-spacing: .08em; cursor: pointer; transition: color .15s, border-color .15s;
     }
     .tab:hover { color: #94a3b8; }
     .tab.active { color: #06b6d4; border-bottom-color: #06b6d4; }
@@ -81,66 +45,24 @@
 
     /* ── Chart cards ── */
     .chart-card {
-      background: #1e293b;
-      border: 1px solid #0e7490;
-      border-radius: 12px;
-      padding: 14px 14px 10px;
-      margin-bottom: 14px;
+      background: #1e293b; border: 1px solid #0e7490;
+      border-radius: 12px; padding: 14px 14px 10px; margin-bottom: 14px;
     }
-
-    .chart-title {
-      color: #67e8f9;
-      font-size: 0.68rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.12em;
-      margin-bottom: 10px;
-    }
-
+    .chart-title { color: #67e8f9; font-size: .68rem; font-weight: 600; text-transform: uppercase; letter-spacing: .12em; margin-bottom: 10px; }
     canvas { display: block; border-radius: 4px; width: 100%; }
 
-    /* ── Config fields ── */
-    .card {
-      background: #1e293b;
-      border: 1px solid #0e7490;
-      border-radius: 12px;
-      padding: 20px;
-      margin-bottom: 16px;
-    }
+    /* ── Generic cards ── */
+    .card { background: #1e293b; border: 1px solid #0e7490; border-radius: 12px; padding: 20px; margin-bottom: 16px; }
+    .card-title { color: #67e8f9; font-size: .7rem; font-weight: 600; text-transform: uppercase; letter-spacing: .12em; margin-bottom: 16px; }
 
-    .card-title {
-      color: #67e8f9;
-      font-size: 0.7rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.12em;
-      margin-bottom: 16px;
-    }
-
+    /* ── Fields ── */
     .field { margin-bottom: 14px; }
     .field:last-child { margin-bottom: 0; }
-
-    .field label {
-      display: block;
-      font-size: 0.7rem;
-      color: #64748b;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      margin-bottom: 6px;
-    }
-
+    .field label { display: block; font-size: .7rem; color: #64748b; text-transform: uppercase; letter-spacing: .08em; margin-bottom: 6px; }
     input[type="number"] {
-      width: 100%;
-      padding: 10px 12px;
-      background: #0f172a;
-      border: 1px solid #334155;
-      border-radius: 8px;
-      color: #e2e8f0;
-      font-size: 1rem;
-      outline: none;
-      transition: border-color 0.15s;
-      -moz-appearance: textfield;
-      appearance: textfield;
+      width: 100%; padding: 10px 12px; background: #0f172a; border: 1px solid #334155;
+      border-radius: 8px; color: #e2e8f0; font-size: 1rem; outline: none;
+      transition: border-color .15s; -moz-appearance: textfield; appearance: textfield;
     }
     input[type="number"]::-webkit-outer-spin-button,
     input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; }
@@ -148,491 +70,576 @@
 
     /* ── Buttons ── */
     .btn {
-      width: 100%;
-      padding: 13px;
-      font-size: 0.875rem;
-      font-weight: 700;
-      border: none;
-      border-radius: 10px;
-      cursor: pointer;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      transition: background 0.15s;
+      width: 100%; padding: 13px; font-size: .875rem; font-weight: 700;
+      border: none; border-radius: 10px; cursor: pointer;
+      letter-spacing: .08em; text-transform: uppercase; transition: background .15s;
     }
-
+    .btn + .btn { margin-top: 10px; }
     .btn-primary { background: #06b6d4; color: #0f172a; }
     .btn-primary:hover { background: #0891b2; }
     .btn-primary:active { background: #0e7490; }
+    .btn-danger  { background: transparent; color: #f87171; border: 1px solid #f87171; }
+    .btn-danger:hover  { background: rgba(248,113,113,.1); }
+    .btn-warning { background: transparent; color: #fb923c; border: 1px solid #fb923c; }
+    .btn-warning:hover { background: rgba(251,146,60,.1); }
+    .btn-success { background: transparent; color: #22c55e; border: 1px solid #22c55e; }
+    .btn-success:hover { background: rgba(34,197,94,.1); }
 
-    .btn-danger { background: transparent; color: #f87171; border: 1px solid #f87171; }
-    .btn-danger:hover { background: rgba(248,113,113,0.1); }
-
-    .status {
-      text-align: center;
-      margin-top: 12px;
-      font-size: 0.8rem;
-      min-height: 18px;
-      color: #06b6d4;
-      letter-spacing: 0.04em;
-    }
+    .status { text-align: center; margin-top: 12px; font-size: .8rem; min-height: 18px; color: #06b6d4; letter-spacing: .04em; }
     .status.error { color: #f87171; }
+    .status.warn  { color: #fb923c; }
+    .status.ok    { color: #22c55e; }
 
     /* ── Mode toggle ── */
     .btn-mode {
-      display: block;
-      width: 100%;
-      padding: 16px;
-      font-size: 0.875rem;
-      font-weight: 700;
-      border-radius: 10px;
-      cursor: pointer;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      transition: background 0.2s;
-      margin-bottom: 16px;
+      display: block; width: 100%; padding: 16px; font-size: .875rem; font-weight: 700;
+      border-radius: 10px; cursor: pointer; letter-spacing: .08em; text-transform: uppercase;
+      transition: background .2s; margin-bottom: 16px;
     }
-
-    .btn-mode.control {
-      background: rgba(34,197,94,0.08);
-      color: #22c55e;
-      border: 1px solid #22c55e;
-    }
-    .btn-mode.control:hover { background: rgba(34,197,94,0.18); }
-
-    .btn-mode.test {
-      background: rgba(251,146,60,0.12);
-      color: #fb923c;
-      border: 1px solid #fb923c;
-    }
-    .btn-mode.test:hover { background: rgba(251,146,60,0.22); }
+    .btn-mode.control { background: rgba(34,197,94,.08);  color: #22c55e; border: 1px solid #22c55e; }
+    .btn-mode.control:hover { background: rgba(34,197,94,.18); }
+    .btn-mode.test    { background: rgba(251,146,60,.12); color: #fb923c; border: 1px solid #fb923c; }
+    .btn-mode.test:hover    { background: rgba(251,146,60,.22); }
 
     /* ── Sliders ── */
-    .slider-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-      margin-bottom: 6px;
-    }
-
-    .slider-name {
-      font-size: 0.75rem;
-      color: #94a3b8;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-    }
-
+    .slider-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px; }
+    .slider-name { font-size: .75rem; color: #94a3b8; text-transform: uppercase; letter-spacing: .08em; }
     .slider-info { display: flex; align-items: center; gap: 10px; }
-
-    .slider-dir {
-      font-size: 0.65rem;
-      color: #64748b;
-      min-width: 68px;
-      text-align: right;
-    }
-
-    .slider-val {
-      font-size: 1rem;
-      font-weight: 700;
-      color: #e2e8f0;
-      font-variant-numeric: tabular-nums;
-      min-width: 36px;
-      text-align: right;
-    }
-
+    .slider-dir  { font-size: .65rem; color: #64748b; min-width: 76px; text-align: right; }
+    .slider-val  { font-size: 1rem; font-weight: 700; color: #e2e8f0; font-variant-numeric: tabular-nums; min-width: 36px; text-align: right; }
     input[type="range"] {
-      width: 100%;
-      -webkit-appearance: none;
-      height: 4px;
-      background: #334155;
-      border-radius: 2px;
-      outline: none;
-      margin: 10px 0 4px;
+      width: 100%; -webkit-appearance: none; height: 4px;
+      background: #334155; border-radius: 2px; outline: none; margin: 10px 0 4px;
     }
-    input[type="range"]::-webkit-slider-thumb {
-      -webkit-appearance: none;
-      width: 20px;
-      height: 20px;
-      border-radius: 50%;
-      background: #06b6d4;
-      cursor: pointer;
-    }
-    input[type="range"]:disabled { opacity: 0.35; cursor: not-allowed; }
-    input[type="range"]:disabled::-webkit-slider-thumb { background: #475569; cursor: not-allowed; }
+    input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 20px; height: 20px; border-radius: 50%; background: #06b6d4; cursor: pointer; }
+    input[type="range"]:disabled { opacity: .35; cursor: not-allowed; }
+    input[type="range"]:disabled::-webkit-slider-thumb { background: #475569; }
+    .range-labels { display: flex; justify-content: space-between; font-size: .6rem; color: #475569; }
 
-    .range-labels {
-      display: flex;
-      justify-content: space-between;
-      font-size: 0.6rem;
-      color: #475569;
+    /* ── Calibration ── */
+    .calib-row {
+      display: grid; grid-template-columns: 1fr auto; align-items: center;
+      gap: 12px; margin-bottom: 12px;
     }
+    .calib-row:last-child { margin-bottom: 0; }
+    .calib-info {}
+    .calib-label { font-size: .75rem; color: #94a3b8; font-weight: 600; margin-bottom: 3px; }
+    .calib-desc  { font-size: .68rem; color: #475569; line-height: 1.4; }
+    .calib-badge {
+      font-size: .65rem; font-weight: 700; padding: 4px 10px; border-radius: 20px;
+      text-transform: uppercase; letter-spacing: .06em; white-space: nowrap;
+    }
+    .calib-badge.ok  { background: rgba(34,197,94,.15);  color: #22c55e; border: 1px solid #22c55e; }
+    .calib-badge.nok { background: rgba(248,113,113,.12); color: #f87171; border: 1px solid #f87171; }
+
+    .calib-btn {
+      width: 100%; padding: 12px; font-size: .8rem; font-weight: 700;
+      border-radius: 8px; cursor: pointer; letter-spacing: .08em; text-transform: uppercase;
+      transition: background .15s; margin-top: 10px;
+    }
+    .calib-btn.imu    { background: rgba(6,182,212,.12);  color: #06b6d4; border: 1px solid #06b6d4; }
+    .calib-btn.imu:hover    { background: rgba(6,182,212,.22); }
+    .calib-btn.motors { background: rgba(251,146,60,.12); color: #fb923c; border: 1px solid #fb923c; }
+    .calib-btn.motors:hover { background: rgba(251,146,60,.22); }
+    .calib-btn:disabled { opacity: .4; cursor: not-allowed; }
+
+    .calib-log {
+      background: #0a1628; border: 1px solid #1e3a5f; border-radius: 8px;
+      padding: 10px 12px; font-size: .72rem; color: #67e8f9;
+      font-family: monospace; min-height: 42px; margin-top: 12px;
+      line-height: 1.5; white-space: pre-wrap;
+    }
+
+    .values-grid {
+      display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 10px;
+    }
+    .val-cell {
+      background: #0f172a; border: 1px solid #1e3a5f; border-radius: 6px;
+      padding: 8px 10px;
+    }
+    .val-cell .vk { font-size: .6rem; color: #475569; text-transform: uppercase; letter-spacing: .06em; }
+    .val-cell .vv { font-size: .85rem; font-weight: 700; color: #e2e8f0; font-variant-numeric: tabular-nums; }
+
+    hr.sep { border: none; border-top: 1px solid #1e3a5f; margin: 14px 0; }
   </style>
 </head>
 <body>
 
-  <header class="header">
-    <span class="header-title">Drone Bench</span>
-    <span class="conn-badge">
-      <span class="dot" id="dot"></span>
-      <span id="conn-lbl">offline</span>
-    </span>
-  </header>
+<header class="header">
+  <span class="header-title">Drone Bench</span>
+  <span class="conn-badge">
+    <span class="dot" id="dot"></span>
+    <span id="conn-lbl">offline</span>
+  </span>
+</header>
 
-  <nav class="tab-bar">
-    <button class="tab active" data-tab="telemetry">Telemetria</button>
-    <button class="tab" data-tab="config">LQI</button>
-    <button class="tab" data-tab="test">Teste</button>
-  </nav>
+<nav class="tab-bar">
+  <button class="tab active" data-tab="telemetry">Telemetria</button>
+  <button class="tab" data-tab="config">LQI</button>
+  <button class="tab" data-tab="calib">Calibração</button>
+  <button class="tab" data-tab="test">Teste</button>
+</nav>
 
-  <!-- ── Telemetry ── -->
-  <section id="tab-telemetry" class="page active">
-    <div class="chart-card">
-      <div class="chart-title">Acelerômetro (g)</div>
-      <canvas id="c-accel" height="140"></canvas>
-    </div>
-    <div class="chart-card">
-      <div class="chart-title">Vel. Angular (°/s)</div>
-      <canvas id="c-gyro" height="140"></canvas>
-    </div>
-    <div class="chart-card">
-      <div class="chart-title">Encoders (°)</div>
-      <canvas id="c-enc" height="140"></canvas>
-    </div>
-  </section>
+<!-- ══════════════════════════════════════════════════════════ TELEMETRIA -->
+<section id="tab-telemetry" class="page active">
+  <div class="chart-card">
+    <div class="chart-title">Acelerômetro (g)</div>
+    <canvas id="c-accel" height="140"></canvas>
+  </div>
+  <div class="chart-card">
+    <div class="chart-title">Vel. Angular (°/s)</div>
+    <canvas id="c-gyro" height="140"></canvas>
+  </div>
+  <div class="chart-card">
+    <div class="chart-title">Encoders (°)</div>
+    <canvas id="c-enc" height="140"></canvas>
+  </div>
+</section>
 
-  <!-- ── LQI Config ── -->
-  <section id="tab-config" class="page">
-    <div class="card">
-      <div class="card-title">Ganhos LQI</div>
-      <div class="field"><label>K1</label><input type="number" id="k1" step="any" placeholder="0.000"></div>
-      <div class="field"><label>K2</label><input type="number" id="k2" step="any" placeholder="0.000"></div>
-      <div class="field"><label>K3</label><input type="number" id="k3" step="any" placeholder="0.000"></div>
-      <div class="field"><label>K4</label><input type="number" id="k4" step="any" placeholder="0.000"></div>
-    </div>
-    <div class="card">
-      <div class="card-title">Setpoints</div>
-      <div class="field"><label>Pitch (°)</label><input type="number" id="pitch_sp" step="any" placeholder="0.0"></div>
-      <div class="field"><label>Yaw (°)</label><input type="number" id="yaw_sp" step="any" placeholder="0.0"></div>
-    </div>
-    <button class="btn btn-primary" onclick="saveConfig()">Salvar</button>
-    <div class="status" id="cfg-status"></div>
-  </section>
+<!-- ══════════════════════════════════════════════════════════ LQI -->
+<section id="tab-config" class="page">
+  <div class="card">
+    <div class="card-title">Ganhos LQI</div>
+    <div class="field"><label>K1</label><input type="number" id="k1" step="any" placeholder="0.000"></div>
+    <div class="field"><label>K2</label><input type="number" id="k2" step="any" placeholder="0.000"></div>
+    <div class="field"><label>K3</label><input type="number" id="k3" step="any" placeholder="0.000"></div>
+    <div class="field"><label>K4</label><input type="number" id="k4" step="any" placeholder="0.000"></div>
+  </div>
+  <div class="card">
+    <div class="card-title">Setpoints</div>
+    <div class="field"><label>Pitch (°)</label><input type="number" id="pitch_sp" step="any" placeholder="0.0"></div>
+    <div class="field"><label>Yaw (°)</label><input type="number"   id="yaw_sp"   step="any" placeholder="0.0"></div>
+  </div>
+  <button class="btn btn-primary" onclick="saveConfig()">Salvar</button>
+  <div class="status" id="cfg-status"></div>
+</section>
 
-  <!-- ── Test ── -->
-  <section id="tab-test" class="page">
-    <button class="btn-mode control" id="mode-btn" onclick="toggleMode()">
-      Modo: Controle — Ativar Teste
+<!-- ══════════════════════════════════════════════════════════ CALIBRAÇÃO -->
+<section id="tab-calib" class="page">
+
+  <!-- Status geral -->
+  <div class="card">
+    <div class="card-title">Status</div>
+    <div class="calib-row">
+      <div class="calib-info">
+        <div class="calib-label">IMU (MPU-6050)</div>
+        <div class="calib-desc">Offsets de bias do acelerômetro e giroscópio</div>
+      </div>
+      <span class="calib-badge nok" id="badge-imu">Pendente</span>
+    </div>
+    <div class="calib-row">
+      <div class="calib-info">
+        <div class="calib-label">Motores</div>
+        <div class="calib-desc">Dead zone (duty mínimo para vencer atrito)</div>
+      </div>
+      <span class="calib-badge nok" id="badge-motors">Pendente</span>
+    </div>
+  </div>
+
+    <div class="calib-row">
+      <div class="calib-info">
+        <div class="calib-label">Encoders (Pitch / Yaw)</div>
+        <div class="calib-desc">Posição salva automaticamente no desligamento e restaurada no boot.</div>
+      </div>
+      <span class="calib-badge nok" id="badge-enc">Pendente</span>
+    </div>
+  </div>
+
+  <!-- Calibração Encoders -->
+  <div class="card">
+    <div class="card-title">0 — Encoders (zero mecânico)</div>
+    <p style="font-size:.75rem;color:#94a3b8;line-height:1.5;margin-bottom:14px;">
+      O firmware salva a posição dos encoders automaticamente ao desligar e
+      a restaura no próximo boot.<br><br>
+      Use o botão abaixo apenas se o drone foi <strong style="color:#e2e8f0">movido com
+      a energia desligada</strong> ou para redefinir o equilíbrio em uma nova posição.
+      <strong style="color:#fb923c">Posicione o drone no equilíbrio desejado antes de pressionar.</strong>
+    </p>
+    <button class="calib-btn imu" id="btn-calib-enc" onclick="calibEncoders()"
+            style="border-color:#22c55e;color:#22c55e;background:rgba(34,197,94,.08)">
+      Zerar Encoders Agora
     </button>
-
-    <div class="card">
-      <div class="card-title">Motor Pitch</div>
-      <div class="slider-header">
-        <span class="slider-name">Duty</span>
-        <span class="slider-info">
-          <span class="slider-dir" id="dir-pitch">Parado</span>
-          <span class="slider-val" id="val-pitch">0</span>
-        </span>
-      </div>
-      <input type="range" class="motor-slider" id="slider-pitch"
-             min="-255" max="255" value="0"
-             oninput="onSlider('pitch', this.value)" disabled>
-      <div class="range-labels"><span>-255</span><span>0</span><span>+255</span></div>
+    <div class="calib-log" id="log-enc">Aguardando...</div>
+    <div class="values-grid" id="grid-enc" style="display:none;margin-top:10px">
+      <div class="val-cell"><div class="vk">Pitch salvo</div><div class="vv" id="v-enc-pitch">—</div></div>
+      <div class="val-cell"><div class="vk">Yaw salvo</div><div class="vv" id="v-enc-yaw">—</div></div>
+      <div class="val-cell" style="background:transparent;border:none"></div>
     </div>
+  </div>
 
-    <div class="card">
-      <div class="card-title">Motor Yaw</div>
-      <div class="slider-header">
-        <span class="slider-name">Duty</span>
-        <span class="slider-info">
-          <span class="slider-dir" id="dir-yaw">Parado</span>
-          <span class="slider-val" id="val-yaw">0</span>
-        </span>
-      </div>
-      <input type="range" class="motor-slider" id="slider-yaw"
-             min="-255" max="255" value="0"
-             oninput="onSlider('yaw', this.value)" disabled>
-      <div class="range-labels"><span>-255</span><span>0</span><span>+255</span></div>
+  <!-- Calibração IMU -->
+  <div class="card">
+    <div class="card-title">1 — IMU</div>
+    <p style="font-size:.75rem;color:#94a3b8;line-height:1.5;margin-bottom:14px;">
+      Mantenha o drone completamente <strong style="color:#e2e8f0">parado</strong> na
+      posição de equilíbrio desejada (pitch = 0 do controlador).<br>
+      A coleta dura ~1 segundo.
+    </p>
+    <button class="calib-btn imu" id="btn-calib-imu" onclick="calibIMU()">
+      Calibrar IMU
+    </button>
+    <div class="calib-log" id="log-imu">Aguardando...</div>
+    <div class="values-grid" id="grid-imu" style="display:none">
+      <div class="val-cell"><div class="vk">off ax</div><div class="vv" id="v-ax">—</div></div>
+      <div class="val-cell"><div class="vk">off ay</div><div class="vv" id="v-ay">—</div></div>
+      <div class="val-cell"><div class="vk">off az</div><div class="vv" id="v-az">—</div></div>
+      <div class="val-cell"><div class="vk">off gx</div><div class="vv" id="v-gx">—</div></div>
+      <div class="val-cell"><div class="vk">off gy</div><div class="vv" id="v-gy">—</div></div>
+      <div class="val-cell"><div class="vk">off gz</div><div class="vv" id="v-gz">—</div></div>
     </div>
+  </div>
 
-    <button class="btn btn-danger" onclick="stopAll()">Parar Tudo</button>
-    <div class="status" id="test-status"></div>
-  </section>
+  <!-- Calibração Motores -->
+  <div class="card">
+    <div class="card-title">2 — Motores (dead zone)</div>
+    <p style="font-size:.75rem;color:#94a3b8;line-height:1.5;margin-bottom:14px;">
+      O braço do drone deve estar <strong style="color:#e2e8f0">livre para girar</strong>
+      em ambas as direções. Os motores serão acionados em rampa progressiva
+      (~30 s no total). <strong style="color:#fb923c">Não segure a estrutura.</strong>
+    </p>
+    <button class="calib-btn motors" id="btn-calib-motors" onclick="calibMotors()">
+      Calibrar Motores
+    </button>
+    <div class="calib-log" id="log-motors">Aguardando...</div>
+    <div class="values-grid" id="grid-motors" style="display:none">
+      <div class="val-cell"><div class="vk">Pitch FWD</div><div class="vv" id="v-pfwd">—</div></div>
+      <div class="val-cell"><div class="vk">Pitch REV</div><div class="vv" id="v-prev">—</div></div>
+      <div class="val-cell" style="background:transparent;border:none"></div>
+      <div class="val-cell"><div class="vk">Yaw FWD</div><div class="vv" id="v-yfwd">—</div></div>
+      <div class="val-cell"><div class="vk">Yaw REV</div><div class="vv" id="v-yrev">—</div></div>
+      <div class="val-cell" style="background:transparent;border:none"></div>
+    </div>
+  </div>
 
-  <script>
-    // ── Tab switching ──
-    document.querySelectorAll('.tab').forEach(btn => {
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-        btn.classList.add('active');
-        document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
-      });
+  <!-- Reset -->
+  <div class="card">
+    <div class="card-title">Resetar Calibração</div>
+    <p style="font-size:.75rem;color:#94a3b8;line-height:1.5;margin-bottom:14px;">
+      Remove todos os offsets e dead zones. O sistema voltará a operar
+      sem compensação até uma nova calibração.
+    </p>
+    <button class="btn btn-danger" onclick="calibReset()">Apagar Calibração</button>
+  </div>
+
+</section>
+
+<!-- ══════════════════════════════════════════════════════════ TESTE -->
+<section id="tab-test" class="page">
+  <button class="btn-mode control" id="mode-btn" onclick="toggleMode()">
+    Modo: Controle — Ativar Teste
+  </button>
+
+  <div class="card">
+    <div class="card-title">Motor Pitch</div>
+    <div class="slider-header">
+      <span class="slider-name">Duty</span>
+      <span class="slider-info">
+        <span class="slider-dir" id="dir-pitch">Parado</span>
+        <span class="slider-val" id="val-pitch">0</span>
+      </span>
+    </div>
+    <input type="range" class="motor-slider" id="slider-pitch"
+           min="-255" max="255" value="0"
+           oninput="onSlider('pitch', this.value)" disabled>
+    <div class="range-labels"><span>-255</span><span>0</span><span>+255</span></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Motor Yaw</div>
+    <div class="slider-header">
+      <span class="slider-name">Duty</span>
+      <span class="slider-info">
+        <span class="slider-dir" id="dir-yaw">Parado</span>
+        <span class="slider-val" id="val-yaw">0</span>
+      </span>
+    </div>
+    <input type="range" class="motor-slider" id="slider-yaw"
+           min="-255" max="255" value="0"
+           oninput="onSlider('yaw', this.value)" disabled>
+    <div class="range-labels"><span>-255</span><span>0</span><span>+255</span></div>
+  </div>
+
+  <button class="btn btn-danger" onclick="stopAll()">Parar Tudo</button>
+  <div class="status" id="test-status"></div>
+</section>
+
+<script>
+// ── Tab switching ──────────────────────────────────────────────────────────
+document.querySelectorAll('.tab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+  });
+});
+
+// ── Rolling chart ──────────────────────────────────────────────────────────
+class RollingChart {
+  constructor(canvas, { n=200, yMin, yMax, autoScale=false, series=[] }) {
+    this.cv=canvas; this.ctx=canvas.getContext('2d');
+    this.n=n; this.yMin=yMin; this.yMax=yMax;
+    this.autoScale=autoScale;
+    this.series=series.map(s=>({...s,data:[]}));
+    this._raf=null; this._draw();
+  }
+  push(vals) {
+    this.series.forEach((s,i)=>{ s.data.push(vals[i]??null); if(s.data.length>this.n) s.data.shift(); });
+    if(!this._raf) this._raf=requestAnimationFrame(()=>{this._raf=null;this._draw();});
+  }
+  _draw() {
+    const {ctx,cv,series,n}=this;
+    const W=cv.width,H=cv.height,PL=40,PR=6,PT=6,PB=24;
+    const cW=W-PL-PR,cH=H-PT-PB;
+    let yMin=this.yMin,yMax=this.yMax;
+    if(this.autoScale){
+      const all=series.flatMap(s=>s.data.filter(v=>v!==null));
+      if(all.length){yMin=Math.min(...all);yMax=Math.max(...all);const p=(yMax-yMin)*.12||1;yMin-=p;yMax+=p;}
+      else{yMin=-1;yMax=1;}
+    }
+    const sy=v=>PT+cH-((v-yMin)/(yMax-yMin))*cH;
+    const sx=i=>PL+(i/(n-1))*cW;
+    ctx.fillStyle='#0f172a'; ctx.fillRect(0,0,W,H);
+    for(let i=0;i<=4;i++){
+      const y=PT+(i/4)*cH,val=yMax-(i/4)*(yMax-yMin);
+      ctx.strokeStyle='#1e3a5f'; ctx.lineWidth=1;
+      ctx.beginPath();ctx.moveTo(PL,y);ctx.lineTo(PL+cW,y);ctx.stroke();
+      ctx.fillStyle='#475569';ctx.font='9px monospace';ctx.textAlign='right';
+      ctx.fillText(val.toFixed(1),PL-4,y+3.5);
+    }
+    if(yMin<0&&yMax>0){
+      const zy=sy(0);ctx.strokeStyle='#334155';ctx.setLineDash([3,3]);
+      ctx.beginPath();ctx.moveTo(PL,zy);ctx.lineTo(PL+cW,zy);ctx.stroke();ctx.setLineDash([]);
+    }
+    series.forEach(s=>{
+      ctx.strokeStyle=s.color;ctx.lineWidth=1.5;ctx.beginPath();let first=true;
+      s.data.forEach((v,i)=>{
+        if(v===null){first=true;return;}
+        const x=sx(i),y=sy(v);
+        if(first){ctx.moveTo(x,y);first=false;}else ctx.lineTo(x,y);
+      });ctx.stroke();
     });
-
-    // ── Rolling chart ──
-    class RollingChart {
-      constructor(canvas, { n = 200, yMin, yMax, autoScale = false, series = [] }) {
-        this.cv        = canvas;
-        this.ctx       = canvas.getContext('2d');
-        this.n         = n;
-        this.yMin      = yMin;
-        this.yMax      = yMax;
-        this.autoScale = autoScale;
-        this.series    = series.map(s => ({ ...s, data: [] }));
-        this._raf      = null;
-        this._draw();
-      }
-
-      push(vals) {
-        this.series.forEach((s, i) => {
-          s.data.push(vals[i] ?? null);
-          if (s.data.length > this.n) s.data.shift();
-        });
-        if (!this._raf) {
-          this._raf = requestAnimationFrame(() => { this._raf = null; this._draw(); });
-        }
-      }
-
-      _draw() {
-        const { ctx, cv, series, n } = this;
-        const W = cv.width, H = cv.height;
-        const PL = 40, PR = 6, PT = 6, PB = 24;
-        const cW = W - PL - PR, cH = H - PT - PB;
-
-        let yMin = this.yMin, yMax = this.yMax;
-        if (this.autoScale) {
-          const all = series.flatMap(s => s.data.filter(v => v !== null));
-          if (all.length) {
-            yMin = Math.min(...all);
-            yMax = Math.max(...all);
-            const pad = (yMax - yMin) * 0.12 || 1;
-            yMin -= pad; yMax += pad;
-          } else { yMin = -1; yMax = 1; }
-        }
-
-        const sy = v => PT + cH - ((v - yMin) / (yMax - yMin)) * cH;
-        const sx = i => PL + (i / (n - 1)) * cW;
-
-        // background
-        ctx.fillStyle = '#0f172a';
-        ctx.fillRect(0, 0, W, H);
-
-        // grid
-        const TICKS = 4;
-        ctx.lineWidth = 1;
-        for (let i = 0; i <= TICKS; i++) {
-          const y   = PT + (i / TICKS) * cH;
-          const val = yMax - (i / TICKS) * (yMax - yMin);
-          ctx.strokeStyle = '#1e3a5f';
-          ctx.beginPath(); ctx.moveTo(PL, y); ctx.lineTo(PL + cW, y); ctx.stroke();
-          ctx.fillStyle = '#475569';
-          ctx.font = '9px monospace';
-          ctx.textAlign = 'right';
-          ctx.fillText(val.toFixed(1), PL - 4, y + 3.5);
-        }
-
-        // zero line
-        if (yMin < 0 && yMax > 0) {
-          const zy = sy(0);
-          ctx.strokeStyle = '#334155';
-          ctx.setLineDash([3, 3]);
-          ctx.beginPath(); ctx.moveTo(PL, zy); ctx.lineTo(PL + cW, zy); ctx.stroke();
-          ctx.setLineDash([]);
-        }
-
-        // series lines
-        series.forEach(s => {
-          ctx.strokeStyle = s.color;
-          ctx.lineWidth = 1.5;
-          ctx.beginPath();
-          let first = true;
-          s.data.forEach((v, i) => {
-            if (v === null) { first = true; return; }
-            const x = sx(i), y = sy(v);
-            if (first) { ctx.moveTo(x, y); first = false; } else ctx.lineTo(x, y);
-          });
-          ctx.stroke();
-        });
-
-        // legend
-        let lx = PL;
-        ctx.font = '10px sans-serif';
-        series.forEach(s => {
-          ctx.fillStyle = s.color;
-          ctx.fillRect(lx, H - 14, 14, 3);
-          ctx.fillStyle = '#94a3b8';
-          ctx.textAlign = 'left';
-          ctx.fillText(s.label, lx + 17, H - 8);
-          lx += ctx.measureText(s.label).width + 34;
-        });
-      }
-    }
-
-    // ── Init charts ──
-    // Canvas internal width matches the card content area
-    const CHART_W = Math.min(480, window.innerWidth - 60);
-    const CHART_H = 140;
-
-    function mkChart(id, opts) {
-      const c = document.getElementById(id);
-      c.width  = CHART_W;
-      c.height = CHART_H;
-      return new RollingChart(c, opts);
-    }
-
-    const chartAccel = mkChart('c-accel', {
-      n: 200, yMin: -2.2, yMax: 2.2,
-      series: [
-        { label: 'ax', color: '#f87171' },
-        { label: 'ay', color: '#4ade80' },
-        { label: 'az', color: '#60a5fa' },
-      ]
+    let lx=PL;ctx.font='10px sans-serif';
+    series.forEach(s=>{
+      ctx.fillStyle=s.color;ctx.fillRect(lx,H-14,14,3);
+      ctx.fillStyle='#94a3b8';ctx.textAlign='left';ctx.fillText(s.label,lx+17,H-8);
+      lx+=ctx.measureText(s.label).width+34;
     });
+  }
+}
 
-    const chartGyro = mkChart('c-gyro', {
-      n: 200, yMin: -520, yMax: 520,
-      series: [
-        { label: 'gx', color: '#f87171' },
-        { label: 'gy', color: '#4ade80' },
-        { label: 'gz', color: '#60a5fa' },
-      ]
-    });
+const CW=Math.min(480,window.innerWidth-60);
+function mkChart(id,opts){const c=document.getElementById(id);c.width=CW;c.height=140;return new RollingChart(c,opts);}
 
-    const chartEnc = mkChart('c-enc', {
-      n: 200, autoScale: true,
-      series: [
-        { label: 'Enc Pitch', color: '#06b6d4' },
-        { label: 'Enc Yaw',   color: '#fb923c' },
-      ]
-    });
+const chartAccel=mkChart('c-accel',{n:200,yMin:-2.2,yMax:2.2,series:[{label:'ax',color:'#f87171'},{label:'ay',color:'#4ade80'},{label:'az',color:'#60a5fa'}]});
+const chartGyro =mkChart('c-gyro', {n:200,yMin:-520,yMax:520,series:[{label:'gx',color:'#f87171'},{label:'gy',color:'#4ade80'},{label:'gz',color:'#60a5fa'}]});
+const chartEnc  =mkChart('c-enc',  {n:200,autoScale:true,series:[{label:'Enc Pitch',color:'#06b6d4'},{label:'Enc Yaw',color:'#fb923c'}]});
 
-    // ── SSE ──
-    const dot     = document.getElementById('dot');
-    const connLbl = document.getElementById('conn-lbl');
+// ── SSE ───────────────────────────────────────────────────────────────────
+const dot=document.getElementById('dot'), connLbl=document.getElementById('conn-lbl');
+const src=new EventSource('/api/events');
 
-    const src = new EventSource('/api/events');
-    src.addEventListener('telemetry', e => {
-      try {
-        const d = JSON.parse(e.data);
-        chartAccel.push([d.ax, d.ay, d.az]);
-        chartGyro.push([d.gx, d.gy, d.gz]);
-        chartEnc.push([d.encPitch, d.encYaw]);
-      } catch {}
-    });
-    src.onopen  = () => { dot.classList.add('on');    connLbl.textContent = 'online';  };
-    src.onerror = () => { dot.classList.remove('on'); connLbl.textContent = 'offline'; };
+src.addEventListener('telemetry',e=>{
+  try{const d=JSON.parse(e.data);chartAccel.push([d.ax,d.ay,d.az]);chartGyro.push([d.gx,d.gy,d.gz]);chartEnc.push([d.encPitch,d.encYaw]);}catch{}
+});
 
-    // ── LQI Config ──
-    async function loadConfig() {
-      try {
-        const res = await fetch('/api/params');
-        if (!res.ok) return;
-        const d = await res.json();
-        ['k1','k2','k3','k4','pitch_sp','yaw_sp'].forEach(k => {
-          const el = document.getElementById(k);
-          if (el && d[k] !== undefined) el.value = d[k];
-        });
-      } catch {}
+// Recebe eventos de progresso da calibração via SSE
+src.addEventListener('calib',e=>{
+  try{
+    const d=JSON.parse(e.data);
+    const msg=d.msg.toLowerCase();
+    const isMotor=msg.includes('motor');
+    const isEnc=msg.includes('encoder') || msg.includes('zero');
+    const logEl=document.getElementById(isMotor?'log-motors':isEnc?'log-enc':'log-imu');
+    if(logEl) logEl.textContent=d.msg;
+    if(d.done && !d.error){
+      if(isEnc) setBadge('badge-enc',true);
+      else loadCalib();
+    }
+  }catch{}
+});
+
+src.onopen =()=>{dot.classList.add('on');   connLbl.textContent='online'; };
+src.onerror=()=>{dot.classList.remove('on');connLbl.textContent='offline';};
+
+// ── LQI Config ────────────────────────────────────────────────────────────
+async function loadConfig(){
+  try{
+    const r=await fetch('/api/params'); if(!r.ok)return;
+    const d=await r.json();
+    ['k1','k2','k3','k4','pitch_sp','yaw_sp'].forEach(k=>{const el=document.getElementById(k);if(el&&d[k]!==undefined)el.value=d[k];});
+  }catch{}
+}
+async function saveConfig(){
+  const keys=['k1','k2','k3','k4','pitch_sp','yaw_sp'];
+  const body=new URLSearchParams();
+  keys.forEach(k=>body.append(k,document.getElementById(k).value));
+  setCfgStatus('Salvando...');
+  try{
+    const r=await fetch('/api/params',{method:'POST',body});
+    r.ok?setCfgStatus('Salvo.'):setCfgStatus('Erro.',true);
+  }catch{setCfgStatus('Sem conexao.',true);}
+}
+function setCfgStatus(msg,err=false){const el=document.getElementById('cfg-status');el.textContent=msg;el.className='status'+(err?' error':'');}
+
+// ── Calibração ────────────────────────────────────────────────────────────
+function fmt(v){return (v===undefined||v===null)?'—':parseFloat(v).toFixed(4);}
+
+async function loadCalib(){
+  try{
+    const r=await fetch('/api/calibration'); if(!r.ok)return;
+    const d=await r.json();
+
+    // Badges de status
+    setBadge('badge-imu',   d.imuCalibrated);
+    setBadge('badge-motors',d.motorCalibrated);
+
+    // Valores IMU
+    if(d.imuCalibrated){
+      document.getElementById('grid-imu').style.display='grid';
+      document.getElementById('v-ax').textContent=fmt(d.imuOffsetAx);
+      document.getElementById('v-ay').textContent=fmt(d.imuOffsetAy);
+      document.getElementById('v-az').textContent=fmt(d.imuOffsetAz);
+      document.getElementById('v-gx').textContent=fmt(d.imuOffsetGx);
+      document.getElementById('v-gy').textContent=fmt(d.imuOffsetGy);
+      document.getElementById('v-gz').textContent=fmt(d.imuOffsetGz);
+      document.getElementById('log-imu').textContent='Calibrado com sucesso.';
     }
 
-    async function saveConfig() {
-      const keys = ['k1','k2','k3','k4','pitch_sp','yaw_sp'];
-      const body = new URLSearchParams();
-      keys.forEach(k => body.append(k, document.getElementById(k).value));
-      setCfgStatus('Salvando...');
-      try {
-        const res = await fetch('/api/params', { method: 'POST', body });
-        res.ok ? setCfgStatus('Salvo com sucesso.') : setCfgStatus('Erro ao salvar.', true);
-      } catch { setCfgStatus('Sem conexao.', true); }
+    // Valores Encoders
+    const encHasData = d.encPitchDeg !== undefined || d.encYawDeg !== undefined;
+    if(encHasData){
+      document.getElementById('grid-enc').style.display='grid';
+      document.getElementById('v-enc-pitch').textContent=fmt(d.encPitchDeg)+'°';
+      document.getElementById('v-enc-yaw').textContent=fmt(d.encYawDeg)+'°';
+      const defined = d.encPitchDeg !== 0 || d.encYawDeg !== 0;
+      setBadge('badge-enc', defined);
+      if(defined) document.getElementById('log-enc').textContent='Posicao restaurada do ultimo desligamento.';
     }
 
-    function setCfgStatus(msg, err = false) {
-      const el = document.getElementById('cfg-status');
-      el.textContent = msg;
-      el.className = 'status' + (err ? ' error' : '');
+    // Valores Motores
+    if(d.motorCalibrated){
+      document.getElementById('grid-motors').style.display='grid';
+      document.getElementById('v-pfwd').textContent=fmt(d.motorPitchDeadbandFwd);
+      document.getElementById('v-prev').textContent=fmt(d.motorPitchDeadbandRev);
+      document.getElementById('v-yfwd').textContent=fmt(d.motorYawDeadbandFwd);
+      document.getElementById('v-yrev').textContent=fmt(d.motorYawDeadbandRev);
+      document.getElementById('log-motors').textContent='Calibrado com sucesso.';
     }
+  }catch{}
+}
 
-    // ── Test / mode toggle ──
-    let testMode   = false;
-    let motorTimer = null;
-    let lastSend   = 0;
+function setBadge(id,ok){
+  const el=document.getElementById(id);
+  if(!el)return;
+  el.textContent=ok?'Calibrado':'Pendente';
+  el.className='calib-badge '+(ok?'ok':'nok');
+}
 
-    function toggleMode() {
-      if (testMode) {
-        fetch('/api/test/control', { method: 'POST' })
-          .catch(() => {})
-          .finally(() => setTestMode(false));
-      } else {
-        setTestMode(true);
-        sendMotors();
-      }
-    }
+async function calibEncoders(){
+  const btn=document.getElementById('btn-calib-enc');
+  btn.disabled=true;
+  document.getElementById('log-enc').textContent='Zerando...';
+  try{
+    await fetch('/api/calibrate/encoders',{method:'POST'});
+  }catch{
+    document.getElementById('log-enc').textContent='Erro de conexao.';
+  }finally{ setTimeout(()=>btn.disabled=false, 1500); }
+}
 
-    function setTestMode(active) {
-      testMode = active;
-      const btn     = document.getElementById('mode-btn');
-      const sliders = document.querySelectorAll('.motor-slider');
-      if (active) {
-        btn.textContent = 'Modo: Teste — Ativar Controle';
-        btn.className   = 'btn-mode test';
-        sliders.forEach(s => s.disabled = false);
-      } else {
-        btn.textContent = 'Modo: Controle — Ativar Teste';
-        btn.className   = 'btn-mode control';
-        sliders.forEach(s => s.disabled = true);
-      }
-    }
+async function calibIMU(){
+  const btn=document.getElementById('btn-calib-imu');
+  btn.disabled=true;
+  document.getElementById('log-imu').textContent='Iniciando... mantenha o sensor parado.';
+  document.getElementById('grid-imu').style.display='none';
+  try{
+    await fetch('/api/calibrate/imu',{method:'POST'});
+    document.getElementById('log-imu').textContent='Coletando amostras (~1 s)...';
+  }catch{
+    document.getElementById('log-imu').textContent='Erro de conexao.';
+  }finally{ setTimeout(()=>btn.disabled=false, 3000); }
+}
 
-    function dirLabel(v) {
-      return v > 0 ? 'Horário' : v < 0 ? 'Anti-Horário' : 'Parado';
-    }
+async function calibMotors(){
+  const btn=document.getElementById('btn-calib-motors');
+  btn.disabled=true;
+  document.getElementById('log-motors').textContent='Iniciando rampa... nao segure a estrutura.';
+  document.getElementById('grid-motors').style.display='none';
+  try{
+    await fetch('/api/calibrate/motors',{method:'POST'});
+    document.getElementById('log-motors').textContent='Testando motores (~30 s)...';
+  }catch{
+    document.getElementById('log-motors').textContent='Erro de conexao.';
+  }finally{ setTimeout(()=>btn.disabled=false, 35000); }
+}
 
-    function onSlider(motor, val) {
-      val = parseInt(val);
-      document.getElementById('val-' + motor).textContent = val;
-      document.getElementById('dir-' + motor).textContent = dirLabel(val);
-      if (!testMode) return;
-      const now = Date.now();
-      clearTimeout(motorTimer);
-      if (now - lastSend >= 40) {
-        lastSend = now; sendMotors();
-      } else {
-        motorTimer = setTimeout(() => { lastSend = Date.now(); sendMotors(); }, 40 - (now - lastSend));
-      }
-    }
+async function calibReset(){
+  if(!confirm('Apagar toda a calibracao salva?'))return;
+  try{
+    await fetch('/api/calibrate/reset',{method:'POST'});
+    document.getElementById('log-imu').textContent='Aguardando...';
+    document.getElementById('log-motors').textContent='Aguardando...';
+    document.getElementById('log-enc').textContent='Aguardando...';
+    document.getElementById('grid-imu').style.display='none';
+    document.getElementById('grid-motors').style.display='none';
+    setBadge('badge-imu',false);
+    setBadge('badge-motors',false);
+    setBadge('badge-enc',false);
+  }catch{}
+}
 
-    async function sendMotors() {
-      const dutyPitch = document.getElementById('slider-pitch').value;
-      const dutyYaw   = document.getElementById('slider-yaw').value;
-      try {
-        await fetch('/api/test/motors', {
-          method: 'POST',
-          body: new URLSearchParams({ dutyPitch, dutyYaw })
-        });
-      } catch {}
-    }
+// ── Teste ─────────────────────────────────────────────────────────────────
+let testMode=false, motorTimer=null, lastSend=0;
 
-    async function stopAll() {
-      ['pitch','yaw'].forEach(m => {
-        document.getElementById('slider-' + m).value = 0;
-        document.getElementById('val-' + m).textContent = '0';
-        document.getElementById('dir-' + m).textContent = 'Parado';
-      });
-      const st = document.getElementById('test-status');
-      try {
-        await fetch('/api/test/stop', { method: 'POST' });
-        st.textContent = 'Motores parados.';
-        st.className   = 'status';
-      } catch {
-        st.textContent = 'Sem conexao.';
-        st.className   = 'status error';
-      }
-    }
+function toggleMode(){
+  if(testMode){
+    fetch('/api/test/control',{method:'POST'}).catch(()=>{}).finally(()=>setTestMode(false));
+  }else{ setTestMode(true); sendMotors(); }
+}
 
-    window.addEventListener('pagehide', () => {
-      if (testMode) navigator.sendBeacon('/api/test/stop');
-    });
+function setTestMode(active){
+  testMode=active;
+  const btn=document.getElementById('mode-btn');
+  document.querySelectorAll('.motor-slider').forEach(s=>s.disabled=!active);
+  if(active){btn.textContent='Modo: Teste — Ativar Controle';btn.className='btn-mode test';}
+  else      {btn.textContent='Modo: Controle — Ativar Teste'; btn.className='btn-mode control';}
+}
 
-    loadConfig();
-  </script>
+function dirLabel(v){return v>0?'Horário':v<0?'Anti-Horário':'Parado';}
+
+function onSlider(motor,val){
+  val=parseInt(val);
+  document.getElementById('val-'+motor).textContent=val;
+  document.getElementById('dir-'+motor).textContent=dirLabel(val);
+  if(!testMode)return;
+  const now=Date.now(); clearTimeout(motorTimer);
+  if(now-lastSend>=40){lastSend=now;sendMotors();}
+  else motorTimer=setTimeout(()=>{lastSend=Date.now();sendMotors();},40-(now-lastSend));
+}
+
+async function sendMotors(){
+  const dp=document.getElementById('slider-pitch').value;
+  const dy=document.getElementById('slider-yaw').value;
+  try{await fetch('/api/test/motors',{method:'POST',body:new URLSearchParams({dutyPitch:dp,dutyYaw:dy})});}catch{}
+}
+
+async function stopAll(){
+  ['pitch','yaw'].forEach(m=>{
+    document.getElementById('slider-'+m).value=0;
+    document.getElementById('val-'+m).textContent='0';
+    document.getElementById('dir-'+m).textContent='Parado';
+  });
+  const st=document.getElementById('test-status');
+  try{
+    await fetch('/api/test/stop',{method:'POST'});
+    st.textContent='Motores parados.'; st.className='status ok';
+  }catch{st.textContent='Sem conexao.'; st.className='status error';}
+}
+
+window.addEventListener('pagehide',()=>{ if(testMode)navigator.sendBeacon('/api/test/stop'); });
+
+loadConfig();
+loadCalib();
+</script>
 </body>
 </html>
