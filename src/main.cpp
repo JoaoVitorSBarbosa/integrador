@@ -315,6 +315,7 @@ void taskCalibration(void* pv) {
 void setup() {
     delay(3000);
     Serial.begin(115200);
+    Serial.println("[FW] v-OTA-test");
 
     if (!LittleFS.begin(true)) Serial.println("[Setup] ERRO: LittleFS falhou.");
 
@@ -363,6 +364,19 @@ void setup() {
     };
     gTp = &tp;
     esp_register_shutdown_handler(onShutdown);
+    // Verifica conteudo real do LittleFS apos OTA
+    File f = LittleFS.open("/index.html", "r");
+    if (f) {
+        String line = f.readStringUntil('\n');  // primeira linha
+        f.close();
+        Serial.printf("[FS] index.html linha 1: %s\n", line.c_str());
+    } else {
+        Serial.println("[FS] Falha ao abrir index.html");
+    }
+
+    static TaskParams sensorParams  = {ctrlQueue, telemQueue, nullptr,       &sensor, nullptr,      nullptr,    nullptr};
+    static TaskParams controlParams = {ctrlQueue, nullptr,    motorCmdQueue, nullptr, &motorPitch,  &motorYaw,  nullptr};
+    static TaskParams telemParams   = {nullptr,   telemQueue, nullptr,       nullptr, nullptr,      nullptr,    &webMan};
 
     xTaskCreatePinnedToCore(taskSensor,      "sensor",    TASK_STACK_SIZE,     &tp, 1, NULL, 0);
     xTaskCreatePinnedToCore(taskTelemetry,   "telemetry", TASK_STACK_SIZE,     &tp, 1, NULL, 0);
