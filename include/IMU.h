@@ -37,6 +37,9 @@ public:
     void setCalibration(float offAx, float offAy, float offAz,
                         float offGx, float offGy, float offGz);
 
+    // Zera o acumulador de yaw — chamar após calibração ou reset
+    void resetYaw();
+
 private:
     Adafruit_MPU6050 imu;
 

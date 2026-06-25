@@ -2,6 +2,7 @@
 #define MOTOR_H
 
 #include <Arduino.h>
+#include <freertos/portmacro.h>
 #include "constants.h"
 
 class Motor {
@@ -27,6 +28,7 @@ private:
     uint8_t chLPWM;
     float deadbandFwd = 0.0f;
     float deadbandRev = 0.0f;
+    portMUX_TYPE mux  = portMUX_INITIALIZER_UNLOCKED;
 
     void applyDuty(float sinal);
 };

@@ -12,8 +12,10 @@ void Motor::begin() {
 }
 
 void Motor::setDeadband(float fwd, float rev) {
+    portENTER_CRITICAL(&mux);
     deadbandFwd = fwd;
     deadbandRev = rev;
+    portEXIT_CRITICAL(&mux);
 }
 
 void Motor::applyDuty(float sinal) {
@@ -37,9 +39,12 @@ void Motor::setVelocidadeRaw(float sinalControle) {
 void Motor::setVelocidade(float sinalControle) {
     if (sinalControle == 0.0f) { parar(); return; }
 
-    // Aplica compensação de dead zone: empurra o sinal para além do limiar
-    // de atrito estático, preservando a proporcionalidade acima dele.
-    float db = (sinalControle > 0.0f) ? deadbandFwd : deadbandRev;
+    portENTER_CRITICAL(&mux);
+    float dbFwd = deadbandFwd;
+    float dbRev = deadbandRev;
+    portEXIT_CRITICAL(&mux);
+
+    float db   = (sinalControle > 0.0f) ? dbFwd : dbRev;
     float sign = (sinalControle > 0.0f) ? 1.0f : -1.0f;
     float mag  = fabsf(sinalControle);
 

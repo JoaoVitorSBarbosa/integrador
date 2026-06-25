@@ -40,7 +40,7 @@ struct ControlParams {
 
 // Comando de acionamento direto dos motores (modo TEST de calibração/teste)
 struct MotorCmd {
-    enum class Mode : uint8_t { CONTROL, TEST } mode = Mode::CONTROL;
+    enum class Mode : uint8_t { CONTROL, TEST, CALIBRATION } mode = Mode::CONTROL;
     float dutyPitch = 0.0f;
     float dutyYaw   = 0.0f;
 };

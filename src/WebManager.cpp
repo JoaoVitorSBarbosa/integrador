@@ -145,7 +145,7 @@ void WebManager::begin() {
     ElegantOTA.begin(&server);
     ElegantOTA.onStart([this]() {
         if (motorCmdQueue) {
-            MotorCmd stop;
+            MotorCmd stop; stop.mode = MotorCmd::Mode::TEST;
             xQueueOverwrite(motorCmdQueue, &stop);
         }
         Serial.println("[OTA] Iniciando atualizacao — motores parados");

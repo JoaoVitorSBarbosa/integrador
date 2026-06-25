@@ -122,62 +122,79 @@ void taskControl(void* pv) {
     float intPitch = 0.0f;   // ∫(rp − θ)dt
     float intYaw   = 0.0f;   // ∫(ry − Ω)dt
 
-    // Para derivada numérica de θ e Ω via encoder
-    float prevThetaEnc = 0.0f;
-    float prevOmegaEnc = 0.0f;
-    unsigned long prevUs = micros();
+    // Derivada numérica calculada só quando chega novo dado (50 Hz) e
+    // mantida (ZOH) nos ticks intermediários — evita aliasing 0 / 2×.
+    float prevThetaEnc  = 0.0f;
+    float prevOmegaEnc  = 0.0f;
+    float thetaDot      = 0.0f;
+    float omegaDot      = 0.0f;
+    unsigned long prevUs       = micros();
+    unsigned long prevSensorUs = micros();
 
     // Aguarda primeiro dado de sensor
     xQueueReceive(sensorQueue, &last, portMAX_DELAY);
     prevThetaEnc = last.encPitchDeg * (PI / 180.0f);
     prevOmegaEnc = last.encYawDeg   * (PI / 180.0f);
-    prevUs = micros();
+    prevUs       = micros();
+    prevSensorUs = prevUs;
 
     for (;;) {
-        // Atualiza leitura de sensor
+        // Atualiza sensor — derivada recalculada apenas quando há dado novo
         SensorData newSensor;
-        if (xQueueReceive(sensorQueue, &newSensor, 0) == pdPASS) last = newSensor;
+        if (xQueueReceive(sensorQueue, &newSensor, 0) == pdPASS) {
+            float thetaNew       = newSensor.encPitchDeg * (PI / 180.0f);
+            float omegaNew       = newSensor.encYawDeg   * (PI / 180.0f);
+            unsigned long nowSns = micros();
+            float sdT            = (nowSns - prevSensorUs) / 1e6f;
+            if (sdT > 0.0f && sdT < 0.5f) {
+                thetaDot = (thetaNew - prevThetaEnc) / sdT;
+                omegaDot = (omegaNew - prevOmegaEnc) / sdT;
+            }
+            prevThetaEnc = thetaNew;
+            prevOmegaEnc = omegaNew;
+            prevSensorUs = nowSns;
+            last = newSensor;
+        }
 
         // Atualiza modo de acionamento direto (calibração/teste)
         MotorCmd newMotorCmd;
         if (xQueueReceive(motorCmdQueue, &newMotorCmd, 0) == pdPASS) motorCmd = newMotorCmd;
 
-        // Atualiza parâmetros de controle vindos da web
+        // Atualiza parâmetros — sempre reseta integradores ao receber novos params
         ControlParams newCp;
         if (xQueueReceive(ctrlParamsQueue, &newCp, 0) == pdPASS) {
-            // Reset integradores ao mudar parâmetros
-            if (newCp.mode != cp.mode ||
-                newCp.refPitch != cp.refPitch ||
-                newCp.refYaw   != cp.refYaw) {
-                intPitch = 0.0f;
-                intYaw   = 0.0f;
-            }
+            intPitch = 0.0f;
+            intYaw   = 0.0f;
             cp = newCp;
             Serial.printf("[Ctrl] Modo=%d refP=%.3f refY=%.3f\n",
                           (int)cp.mode, cp.refPitch, cp.refYaw);
         }
 
-        // dt real
+        // dt para integração (período real do tick de controle)
         unsigned long nowUs = micros();
         float dt = (nowUs - prevUs) / 1e6f;
         prevUs = nowUs;
         if (dt <= 0.0f || dt > 0.1f) dt = 1.0f / FREQ_CONTROL_HZ;
 
-        // Grandezas angulares em rad / rad·s⁻¹
-        float theta    = last.encPitchDeg * (PI / 180.0f);   // θ  — encoder pitch
-        float omega    = last.encYawDeg   * (PI / 180.0f);   // Ω  — encoder yaw
-        float thetaDot = (theta - prevThetaEnc) / dt;         // θ̇
-        float omegaDot = (omega - prevOmegaEnc) / dt;         // Ω̇
-        prevThetaEnc = theta;
-        prevOmegaEnc = omega;
+        // Grandezas angulares em rad
+        float theta = last.encPitchDeg * (PI / 180.0f);   // θ  — encoder pitch
+        float omega  = last.encYawDeg   * (PI / 180.0f);   // Ω  — encoder yaw
+        // thetaDot / omegaDot mantidos desde última atualização de sensor (ZOH)
 
         float uPitch = 0.0f, uYaw = 0.0f;
 
-        // ── Modo TEST (calibração ou teste manual) ────────────────────────
+        // ── Modo CALIBRATION — taskCalibration tem controle exclusivo ────────
+        if (motorCmd.mode == MotorCmd::Mode::CALIBRATION) {
+            uPitch = 0.0f; uYaw = 0.0f;
+            goto send_telem;
+        }
+
+        // ── Modo TEST (teste manual via web) ──────────────────────────────
         if (motorCmd.mode == MotorCmd::Mode::TEST) {
-            p->motorPitch->setVelocidade(motorCmd.dutyPitch);
-            p->motorYaw->setVelocidade(motorCmd.dutyYaw);
-            // Não integra durante TEST
+            uPitch = motorCmd.dutyPitch;
+            uYaw   = motorCmd.dutyYaw;
+            p->motorPitch->setVelocidade(uPitch);
+            p->motorYaw->setVelocidade(uYaw);
             goto send_telem;
         }
 
@@ -256,9 +273,15 @@ void taskCalibration(void* pv) {
     for (;;) {
         xQueueReceive(calibCmdQueue, &cmd, portMAX_DELAY);
 
-        // Para motores durante calibração
-        MotorCmd pause; pause.mode = MotorCmd::Mode::TEST;
-        xQueueOverwrite(motorCmdQueue, &pause);
+        // Para calibração de motores: CALIBRATION (taskControl sai do caminho).
+        // Para demais tipos: TEST duty=0 (motores ativamente parados).
+        {
+            MotorCmd pause;
+            pause.mode = (cmd.type == CalibCmd::Type::MOTORS)
+                         ? MotorCmd::Mode::CALIBRATION
+                         : MotorCmd::Mode::TEST;
+            xQueueOverwrite(motorCmdQueue, &pause);
+        }
         vTaskDelay(pdMS_TO_TICKS(200));
 
         switch (cmd.type) {
@@ -266,6 +289,7 @@ void taskCalibration(void* pv) {
                 LittleFS.remove("/calibration.json");
                 *p->calib = CalibData{};
                 p->sensor->setCalibration(0,0,0,0,0,0);
+                p->sensor->resetYaw();
                 p->motorPitch->setDeadband(0,0);
                 p->motorYaw->setDeadband(0,0);
                 p->encPitch->reset(); p->encYaw->reset();
@@ -284,6 +308,7 @@ void taskCalibration(void* pv) {
                 p->sensor->setCalibration(
                     p->calib->imuOffsetAx, p->calib->imuOffsetAy, p->calib->imuOffsetAz,
                     p->calib->imuOffsetGx, p->calib->imuOffsetGy, p->calib->imuOffsetGz);
+                p->sensor->resetYaw();
                 Calibration::save(*p->calib);
                 sendStatus("IMU calibrado.", true);
                 break;
@@ -373,11 +398,7 @@ void setup() {
     } else {
         Serial.println("[FS] Falha ao abrir index.html");
     }
-
-    static TaskParams sensorParams  = {ctrlQueue, telemQueue, nullptr,       &sensor, nullptr,      nullptr,    nullptr};
-    static TaskParams controlParams = {ctrlQueue, nullptr,    motorCmdQueue, nullptr, &motorPitch,  &motorYaw,  nullptr};
-    static TaskParams telemParams   = {nullptr,   telemQueue, nullptr,       nullptr, nullptr,      nullptr,    &webMan};
-
+    
     xTaskCreatePinnedToCore(taskSensor,      "sensor",    TASK_STACK_SIZE,     &tp, 1, NULL, 0);
     xTaskCreatePinnedToCore(taskTelemetry,   "telemetry", TASK_STACK_SIZE,     &tp, 1, NULL, 0);
     xTaskCreatePinnedToCore(taskControl,     "control",   TASK_STACK_SIZE,     &tp, 2, NULL, 1);

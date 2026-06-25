@@ -6,7 +6,7 @@ IMU::IMU() {}
 void IMU::begin() {
     Serial.println("[IMU] Iniciando Wire...");
     Wire.begin(IMU_SDA, IMU_SCL);
-    Wire.setClock(400000);
+    Wire.setClock(100000);
     Wire.setTimeOut(10);
     delay(50);
 
@@ -94,3 +94,5 @@ SensorData IMU::readInternal(bool applyOffset) {
 
 SensorData IMU::read()    { return readInternal(true);  }
 SensorData IMU::readRaw() { return readInternal(false); }
+
+void IMU::resetYaw() { yawAccum = 0.0f; }
