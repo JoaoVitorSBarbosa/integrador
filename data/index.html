@@ -150,6 +150,22 @@
     input[type="range"]:disabled{opacity:.35;cursor:not-allowed}
     input[type="range"]:disabled::-webkit-slider-thumb{background:#475569}
     .range-labels{display:flex;justify-content:space-between;font-size:.6rem;color:#475569}
+
+    /* open-loop test */
+    .ol-selector{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px}
+    .ol-opt{padding:12px 8px;background:#0f172a;border:1px solid #334155;border-radius:8px;
+            color:#64748b;font-size:.72rem;font-weight:700;text-align:center;cursor:pointer;
+            transition:all .15s;line-height:1.5;user-select:none}
+    .ol-opt:hover{border-color:#4a6a7a;color:#94a3b8}
+    .ol-opt.sel{border-color:#06b6d4;color:#06b6d4;background:rgba(6,182,212,.08)}
+    .ol-opt .sub{font-size:.62rem;font-weight:400;color:#475569;display:block}
+    .ol-opt.sel .sub{color:#0891b2}
+    .prog-wrap{background:#0f172a;border:1px solid #1e3a5f;border-radius:6px;
+               height:6px;overflow:hidden;margin:8px 0 4px}
+    .prog-bar{height:100%;background:#06b6d4;border-radius:6px;width:0%;transition:width .08s linear}
+    .phase-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+    .phase-name{font-size:.72rem;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em}
+    .phase-pct{font-size:.9rem;font-weight:700;color:#67e8f9;font-variant-numeric:tabular-nums}
   </style>
 </head>
 <body>
@@ -167,6 +183,7 @@
   <button class="tab" data-tab="control">Controle</button>
   <button class="tab" data-tab="calib">Calibração</button>
   <button class="tab" data-tab="test">Teste</button>
+  <button class="tab" data-tab="ol">Rotina</button>
 </nav>
 
 <!-- ══════════════ TELEMETRIA ══════════════════════════════════════════════ -->
@@ -432,6 +449,49 @@
   <div class="status" id="test-status"></div>
 </section>
 
+<!-- ══════════════ ROTINA MALHA ABERTA ════════════════════════════════════ -->
+<section id="tab-ol" class="page">
+  <div class="card">
+    <div class="card-title">Selecionar Teste</div>
+    <div class="ol-selector">
+      <div class="ol-opt sel" data-id="1" onclick="olSelect(this)">
+        Teste 1<span class="sub">Pitch − · 1 s</span>
+      </div>
+      <div class="ol-opt" data-id="2" onclick="olSelect(this)">
+        Teste 2<span class="sub">Yaw + · 1 s</span>
+      </div>
+      <div class="ol-opt" data-id="3" onclick="olSelect(this)">
+        Teste 3 / 6<span class="sub">Pitch + · 5 s</span>
+      </div>
+      <div class="ol-opt" data-id="4" onclick="olSelect(this)">
+        Teste 4 / 5<span class="sub">Pitch + · 5 s</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Execução</div>
+    <div class="phase-row">
+      <span class="phase-name" id="ol-phase">Aguardando</span>
+      <span class="phase-pct" id="ol-pct">—</span>
+    </div>
+    <div class="prog-wrap"><div class="prog-bar" id="ol-bar"></div></div>
+    <button class="btn btn-primary" id="ol-start" onclick="olRun()" style="margin-top:14px">Iniciar Teste</button>
+    <button class="btn btn-warning" id="ol-dl" style="display:none;margin-top:10px" onclick="olDownload()">⬇ Baixar CSV</button>
+    <div class="status" id="ol-status"></div>
+  </div>
+
+  <div class="card" id="ol-live" style="display:none">
+    <div class="card-title">Ao Vivo</div>
+    <div class="tele-grid">
+      <div class="tele-item"><div class="tele-label">Pitch</div><div class="tele-val" id="ol-pitch">—</div></div>
+      <div class="tele-item"><div class="tele-label">Yaw</div><div class="tele-val" id="ol-yaw">—</div></div>
+      <div class="tele-item"><div class="tele-label">Enc Pitch</div><div class="tele-val" id="ol-ep">—</div></div>
+      <div class="tele-item"><div class="tele-label">Enc Yaw</div><div class="tele-val" id="ol-ey">—</div></div>
+    </div>
+  </div>
+</section>
+
 <script>
 // ── Tabs ─────────────────────────────────────────────────────────────────────
 document.querySelectorAll('.tab').forEach(b=>{
@@ -574,6 +634,16 @@ src.addEventListener('telemetry',e=>{
       document.getElementById('cur-vel-yaw').textContent=vy.toFixed(1)+'°/s';
     }
     prevEncPitch=d.encPitch; prevEncYaw=d.encYaw;
+    if(olRunning){
+      olRows.push({t:Date.now()-olStartMs,dp:olCurDp,dy:olCurDy,
+        ax:d.ax,ay:d.ay,az:d.az,gx:d.gx,gy:d.gy,gz:d.gz,
+        pitch:d.pitch,yaw:d.yaw,encPitch:d.encPitch,encYaw:d.encYaw});
+      const f2=v=>v!=null?parseFloat(v).toFixed(2):'—';
+      document.getElementById('ol-pitch').textContent=f2(d.pitch)+'°';
+      document.getElementById('ol-yaw').textContent  =f2(d.yaw)+'°';
+      document.getElementById('ol-ep').textContent   =f2(d.encPitch)+'°';
+      document.getElementById('ol-ey').textContent   =f2(d.encYaw)+'°';
+    }
     const fmt=(v,dec=2)=>v!=null?parseFloat(v).toFixed(dec):'—';
     document.getElementById('t-up').textContent=fmt(d.uPitch,1);
     document.getElementById('t-uy').textContent=fmt(d.uYaw,1);
@@ -690,6 +760,90 @@ async function stopAll(){
   catch{st.textContent='Sem conexão.';st.className='status error';}
 }
 window.addEventListener('pagehide',()=>{if(testMode)navigator.sendBeacon('/api/test/stop');});
+
+// ── Rotina Malha Aberta ───────────────────────────────────────────────────────
+const OL_TESTS = {
+  '1': { label:'Teste 1',   file:'teste1',
+         phases:[{name:'Repouso', ms:1000,dp:0,dy:0},{name:'Motor ON',ms:1000,dp:-255,dy:0}] },
+  '2': { label:'Teste 2',   file:'teste2',
+         phases:[{name:'Repouso', ms:1000,dp:0,dy:0},{name:'Motor ON',ms:1000,dp:0,dy:255}]  },
+  '3': { label:'Teste 3/6', file:'teste3_6',
+         phases:[{name:'Repouso', ms:1000,dp:0,dy:0},{name:'Motor ON',ms:5000,dp:255,dy:0}]  },
+  '4': { label:'Teste 4/5', file:'teste4_5',
+         phases:[{name:'Repouso', ms:1000,dp:0,dy:0},{name:'Motor ON',ms:5000,dp:255,dy:0}]  },
+};
+
+let olSelId='1', olRows=[], olRunning=false, olStartMs=0, olCurDp=0, olCurDy=0;
+
+function olSelect(el){
+  document.querySelectorAll('.ol-opt').forEach(e=>e.classList.remove('sel'));
+  el.classList.add('sel');
+  olSelId=el.dataset.id;
+}
+
+function olSetPhase(name,pct){
+  document.getElementById('ol-phase').textContent=name;
+  document.getElementById('ol-pct').textContent  =pct<0?'—':Math.round(pct)+'%';
+  document.getElementById('ol-bar').style.width  =Math.max(0,pct)+'%';
+}
+
+function olSetStatus(msg,cls=''){
+  const el=document.getElementById('ol-status');
+  el.textContent=msg; el.className='status'+(cls?' '+cls:'');
+}
+
+const olSleep=ms=>new Promise(r=>setTimeout(r,ms));
+
+async function olRun(){
+  if(olRunning)return;
+  const test=OL_TESTS[olSelId]; if(!test)return;
+  olRunning=true; olRows=[]; olCurDp=0; olCurDy=0;
+  document.getElementById('ol-start').disabled=true;
+  document.getElementById('ol-dl').style.display='none';
+  document.getElementById('ol-live').style.display='block';
+  olSetPhase('Iniciando',-1); olSetStatus('');
+
+  try{
+    await fetch('/api/test/motors',{method:'POST',body:new URLSearchParams({dutyPitch:0,dutyYaw:0})});
+  }catch{ olSetStatus('Sem conexão.','error'); olFinish(); return; }
+
+  const totalMs=test.phases.reduce((s,p)=>s+p.ms,0);
+  olStartMs=Date.now();
+
+  for(const ph of test.phases){
+    olCurDp=ph.dp; olCurDy=ph.dy;
+    try{ await fetch('/api/test/motors',{method:'POST',body:new URLSearchParams({dutyPitch:ph.dp,dutyYaw:ph.dy})}); }catch{}
+    const t0=Date.now();
+    while(Date.now()-t0<ph.ms){
+      olSetPhase(ph.name,((Date.now()-olStartMs)/totalMs)*100);
+      await olSleep(80);
+    }
+  }
+
+  try{ await fetch('/api/test/stop',{method:'POST'}); }catch{}
+  try{ await fetch('/api/test/control',{method:'POST'}); }catch{}
+  olCurDp=0; olCurDy=0;
+  olSetPhase('Concluído',100);
+  olSetStatus(test.label+' finalizado — '+olRows.length+' amostras','ok');
+  document.getElementById('ol-dl').style.display='block';
+  olFinish();
+}
+
+function olFinish(){ olRunning=false; document.getElementById('ol-start').disabled=false; }
+
+function olDownload(){
+  const test=OL_TESTS[olSelId];
+  const hdr='t_ms,dutyPitch,dutyYaw,ax,ay,az,gx,gy,gz,pitch,yaw,encPitch,encYaw';
+  const f4=v=>(v!=null?parseFloat(v).toFixed(4):'');
+  const body=olRows.map(r=>[r.t,r.dp,r.dy,f4(r.ax),f4(r.ay),f4(r.az),
+    f4(r.gx),f4(r.gy),f4(r.gz),f4(r.pitch),f4(r.yaw),f4(r.encPitch),f4(r.encYaw)].join(',')).join('\n');
+  const blob=new Blob([hdr+'\n'+body],{type:'text/csv'});
+  const url=URL.createObjectURL(blob);
+  Object.assign(document.createElement('a'),{href:url,download:test.file+'.csv'}).click();
+  URL.revokeObjectURL(url);
+}
+
+window.addEventListener('pagehide',()=>{ if(olRunning)navigator.sendBeacon('/api/test/stop'); });
 
 // ── Init ──────────────────────────────────────────────────────────────────────
 loadParams();
