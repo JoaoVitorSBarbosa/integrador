@@ -301,26 +301,26 @@
       </div>
 
       <div class="section-label">Ganhos integradores Ki (2×2)</div>
-      <div class="matrix-row-label">uPitch ← [Ki1·∫pitch + Ki3·∫yaw]</div>
+      <div class="matrix-row-label">uPitch ← [Ki1·∫pitch + Ki2·∫yaw]</div>
       <div class="field-group cols2">
         <div class="field">
           <label>Ki1<span>∫pitch → uPitch</span></label>
           <input type="number" id="Ki1_2dof" step="any" placeholder="0.0">
         </div>
         <div class="field">
-          <label>Ki3<span>∫yaw → uPitch</span></label>
-          <input type="number" id="Ki3_2dof" step="any" placeholder="0.0">
+          <label>Ki2<span>∫yaw → uPitch</span></label>
+          <input type="number" id="Ki2_2dof" step="any" placeholder="0.0">
         </div>
       </div>
-      <div class="matrix-row-label">uYaw ← [Ki4·∫pitch + Ki2·∫yaw]</div>
+      <div class="matrix-row-label">uYaw ← [Ki3·∫pitch + Ki4·∫yaw]</div>
       <div class="field-group cols2">
         <div class="field">
-          <label>Ki4<span>∫pitch → uYaw</span></label>
-          <input type="number" id="Ki4_2dof" step="any" placeholder="0.0">
+          <label>Ki3<span>∫pitch → uYaw</span></label>
+          <input type="number" id="Ki3_2dof" step="any" placeholder="0.0">
         </div>
         <div class="field">
-          <label>Ki2<span>∫yaw → uYaw</span></label>
-          <input type="number" id="Ki2_2dof" step="any" placeholder="0.0">
+          <label>Ki4<span>∫yaw → uYaw</span></label>
+          <input type="number" id="Ki4_2dof" step="any" placeholder="0.0">
         </div>
       </div>
 
